@@ -19,7 +19,7 @@ else:
     path = '/kyb/agks/sheczko/Downloads/MastersThesis/code/data/'
 print(path)
 
-imgs_paths = glob.glob(path + 'prep_00*.nii')
+imgs_paths = glob.glob(path + '*.nii')
 
 nib_image = nib.load(imgs_paths[0])
 
