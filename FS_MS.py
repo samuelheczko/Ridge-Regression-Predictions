@@ -13,7 +13,7 @@ from nilearn import datasets
 from nilearn.connectome import ConnectivityMeasure
 from nilearn.maskers import MultiNiftiLabelsMasker
 from nilearn.maskers import MultiNiftiMasker
-cluster = False
+cluster = True
 if cluster:    
     path = '/home/sheczko/ptmp/AOMIC/prep_nifti/'
 else:
