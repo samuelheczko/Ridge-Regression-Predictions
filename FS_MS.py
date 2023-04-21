@@ -5,14 +5,13 @@ import nibabel as nib
 import glob
 import os
 import sklearn
-import nibabel as nib
 
-from nilearn import image
-from nilearn import plotting
-from nilearn import datasets
-from nilearn.connectome import ConnectivityMeasure
-from nilearn.maskers import MultiNiftiLabelsMasker
-from nilearn.maskers import MultiNiftiMasker
+#from nilearn import image
+#from nilearn import plotting
+#from nilearn import datasets
+#from nilearn.connectome import ConnectivityMeasure
+#from nilearn.maskers import MultiNiftiLabelsMasker
+#from nilearn.maskers import MultiNiftiMasker
 cluster = True
 if cluster:    
     path = '/home/sheczko/ptmp/AOMIC/prep_nifti/'
