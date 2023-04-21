@@ -1,4 +1,3 @@
-
 #!/bin/bash -l
 #SBATCH --job-name=test_sbatch_script
  
