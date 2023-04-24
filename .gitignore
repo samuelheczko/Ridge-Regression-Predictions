@@ -3,4 +3,4 @@ data/
 nilearn_cache/
 ~
 ~.pub
-S
+__pycache__/
