@@ -7,7 +7,7 @@ import glob
 ##defime global parameters
 cluster = True
 if cluster:
-    path = '/kyb/agks/sheczko/Downloads/MastersThesis/code/data/'
+    path = '/home/sheczko/ptmp/data/'
 else:
     path = 'data/' ##change for cluster
 correlation_measure = 'correlation' #can be also tangent, partial
