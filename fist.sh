@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#SBATCH --job-name=test_sbatch_script
+#SBATCH --job-name=connectome_extraction
  
 #SBATCH --nodes=1
 #SBATCH --exclusive
@@ -12,7 +12,7 @@ module add singularity
 
 export SINGULARITY_BIND="/run,/ptmp,/scratch,/tmp,/opt/ohpc,${HOME}"
 
-singularity exec /ptmp/containers/fmriprep_latest.sif  python /home/sheczko/code1/MastersThesis/FS_MS.py
+singularity exec /ptmp/containers/fmriprep_latest.sif  python /home/sheczko/code1/MastersThesis/exttract_connectomes.py
 
 
 exit 0
