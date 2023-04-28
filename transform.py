@@ -21,7 +21,7 @@ import ants
 path_atlases = sys.argv[1]
 
 ##1. load the atlases
-atlas_list = glob.glob(path_atlases + '*2x2x2*.nii.gz')##load the altases with 1mm res
+atlas_list = glob.glob(path_atlases + '*1x1x1*.nii.gz')##load the altases with 1mm res
 print(os.path.basename(atlas_list[0]))
 
 ##2. load the the transforms
