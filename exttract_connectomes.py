@@ -41,10 +41,11 @@ for a_l in anatomical_labels:
 for atlas_path in atlases: ##loop over atlases
     atlas_name = (atlas_path.split('/')[-1].split('.')[0].split('_')[0]) #split the atlas path so we
     print(atlas_name)
+
     al_p = (any(n == atlas_name for n in anatomical_label_names)) ##find wheter we have the anatomical labellings for this atlas
 
     if al_p:
-        anatomic_path = path + f'/atlases/lawrance2021/label/Human/Anatomical-labels-csv/' + atlas + '.csv'
+        anatomic_path = path + f'/atlases/lawrance2021/label/Human/Anatomical-labels-csv/' + atlas_name + '.csv'
         ana_labels = pd.read_csv(anatomic_path,names=colnames, header=None)
     else:
         ana_labels = None
