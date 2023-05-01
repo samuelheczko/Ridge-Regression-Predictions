@@ -19,9 +19,9 @@ correlation_measure='correlation' ##set for calculation of the brain connectome,
 
 ##add the data and names of things
 if cluster:
-    imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*.nii') ##load up a subset of the subejct images
+    imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*.nii') ##load up all subejct images
 else:
-    imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*000*.nii') ##load up all the subejct images
+    imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*000*.nii') ##load up a subset of the subejct images
 
 subjects_idxs = []
 for s_n in imgs_paths:
