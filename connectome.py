@@ -38,8 +38,8 @@ def save_connectomes_df(correlation_matrices,anatomical_label_presence, anatomic
         df_[f'subject_{subject_ixds[subject_ixd]}'] = correlation_matrices[subject_ixd][np.triu_indices(correlation_matrices.shape[1], k = 1)] #take the upper triangle from the subject specific matrix, to go back to matrix https://stackoverflow.com/questions/17527693/transform-the-upper-lower-triangular-part-of-a-symmetric-matrix-2d-array-into/58806626#58806626
     
     if anatomical_label_presence: ##if we have anatomical labels for the brain areas the atlas considered
-        df_['brain_area_1'] = list(anatomic_labels['anatomical_label'][triangle_index[0]])
-        df_['brain_area_2'] = list(anatomic_labels['anatomical_label'][triangle_index[1]])
+        df_['brain_area_1'] = list(anatomic_labels['anatomical_label'].iloc[triangle_index[0]])
+        df_['brain_area_2'] = list(anatomic_labels['anatomical_label'].iloc[triangle_index[1]])
     
     else: ##if we have anatomical labels for the brain areas the atlas considered
         df_['brain_area_1 (index)'] = list(triangle_index[0] + 1)
