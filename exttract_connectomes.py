@@ -35,6 +35,9 @@ anatomical_label_names = []
 for a_l in anatomical_labels:
     anatomical_label_names.append(a_l.split('/')[-1].split('.')[0]) #split the path to extract only the name of the atlas
 
+colnames=['idx','anatomical_label'] 
+
+
 
 ##loop over atlases
 
@@ -47,6 +50,7 @@ for atlas_path in atlases: ##loop over atlases
     if al_p:
         anatomic_path = path + f'/atlases/lawrance2021/label/Human/Anatomical-labels-csv/' + atlas_name + '.csv'
         ana_labels = pd.read_csv(anatomic_path,names=colnames, header=None)
+        ana_labels = ana_labels[ana_labels['idx'] != 0]
     else:
         ana_labels = None
 

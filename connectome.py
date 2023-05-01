@@ -11,7 +11,7 @@ from nilearn.connectome import ConnectivityMeasure
 from nilearn.maskers import MultiNiftiLabelsMasker
 from nilearn.maskers import MultiNiftiMasker
 
-path = '/kyb/agks/sheczko/Downloads/MastersThesis/code/data/' ##change this for the cluster version
+#path = '/kyb/agks/sheczko/Downloads/MastersThesis/code/data/' ##change this for the cluster version
 
 
 def calculate_time_series(atlas_path,imgs_paths,standartise = True):
@@ -53,6 +53,7 @@ def save_connectomes_df(correlation_matrices,anatomical_label_presence, anatomic
 
 #def plot_connectome(atlas,connectome:
 #coords = plotting.find_parcellation_cut_coords(labels_img = atlas))
+
 
 
 
