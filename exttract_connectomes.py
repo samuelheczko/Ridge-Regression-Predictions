@@ -5,11 +5,11 @@ import glob
 
 
 ##defime global parameters
-cluster = True
+cluster = False
 if cluster:
-    path = '/home/sheczko/ptmp/data/'
+    path = '/home/sheczko/ptmp/data/' #Cluster
 else:
-    path = 'data/' ##change for cluster
+    path = 'data/' ##local
 correlation_measure = 'correlation' #can be also tangent, partial
 res_n = 1
 res = f'{res_n}x{res_n}x{res_n}'
@@ -21,11 +21,12 @@ correlation_measure='correlation' ##set for calculation of the brain connectome,
 if cluster:
     imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*.nii') ##load up all subejct images
 else:
-    imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*000*.nii') ##load up a subset of the subejct images
-
+    imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*000*.nii') ##load up a subset of the subejct imagesim
+print(imgs_paths)
 subjects_idxs = []
 for s_n in imgs_paths:
     subjects_idxs.append(s_n.split('_')[-1].split('.')[0]) #split the path to extract only the number of the subject from path
+print(subjects_idxs)
 
 
 
@@ -42,7 +43,7 @@ colnames=['idx','anatomical_label']
 ##loop over atlases
 
 for atlas_path in atlases: ##loop over atlases
-    atlas_name = (atlas_path.split('/')[-1].split('.')[0].split('_')[0]) #split the atlas path so we
+    atlas_name = (atlas_path.split('/')[-1].split('.')[0].split('_')[0]) #split the atlas path so we have the name
     print(atlas_name)
 
     al_p = (any(n == atlas_name for n in anatomical_label_names)) ##find wheter we have the anatomical labellings for this atlas

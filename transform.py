@@ -17,7 +17,7 @@ from nilearn.maskers import MultiNiftiMasker
 from nilearn import image
 import ants
 
-##transform the atlaes
+##take the target path form the arguemnt
 path_atlases = sys.argv[1]
 
 ##1. load the atlases
