@@ -12,6 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import time
+from sklearn.preprocessing import normalize
+
 
 from sklearn.metrics import explained_variance_score, r2_score
 from sklearn.linear_model import Ridge
@@ -42,7 +44,7 @@ cognition = ['GCA','bmi']
 cog_metric = np.transpose(np.asarray([GCA, bmi]))
 
 #set the number of permutations you want to perform
-perm = 100
+perm = 50
     #set the number of cross-validation loops you want to perform
 cv_loops = 5
 #set the number of folds you want in the inner and outer folds of the nested cross-validation
@@ -53,8 +55,7 @@ train_size = .8
 n_cog = np.size(cognition)
 #set regression model type
 regr = Ridge(fit_intercept = True, max_iter=1000000)
-#set hyperparameter grid space you want to search through for the model
-alphas = np.linspace(10, 10000, num = 10, endpoint=True, dtype=None, axis=0)
+
 #set y to be the cognitive metrics you want to predict. They are the same for every atlas (each subject has behavioural score regradless of parcellation)
 Y = cog_metric
 
@@ -76,6 +77,8 @@ for data_path_i, data_path in enumerate(data_paths): ##loop over atlases
     print(f'current ' + current_atlas)
 
     if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068'):
+
+        print('skipping this atlas too many features:(')
         continue
 
     fc = regresson.load_data(current_path) ##set the imput variable to the current atlas connectome, gives subjects x features matrix
@@ -84,10 +87,15 @@ for data_path_i, data_path in enumerate(data_paths): ##loop over atlases
     
     X = fc
     X[X<0] = 0 #filter the negative values from the correlations
-
-
     #set the number of features 
     n_feat = X.shape[1]
+
+
+    #set hyperparameter grid space you want to search through for the model
+    alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
+
+
+
     r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,cognition = cognition)
     
     ##save data:
@@ -99,8 +107,8 @@ for data_path_i, data_path in enumerate(data_paths): ##loop over atlases
 
     result_r2 = pd.DataFrame(columns = [cog + '_r2' for cog in cognition], data = r2)
     result_var = pd.DataFrame(columns = [cog + '_var' for cog in cognition], data = var)
-    opt_alphas_df = pd.DataFrame(columns = [cog + '_opt_alphas' for cog in cognition])
-    result_df = pd.concat([result_var,result_r2],axis = 1)
+    opt_alphas_df = pd.DataFrame(columns = [cog + '_opt_alphas' for cog in cognition], data =  opt_alphas)
+    result_df = pd.concat([result_var,result_r2,opt_alphas_df],axis = 1)
 
-    result_df.to_csv(path + f'results/ridge_regression/ridge_results_atlas-{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/ridge_regression/ridge_preds_atlas-{current_atlas}.csv')
+    result_df.to_csv(path + f'results/ridge_regression/ridge_results_norm_{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/ridge_regression/ridge_preds_norm_{current_atlas}.csv')
