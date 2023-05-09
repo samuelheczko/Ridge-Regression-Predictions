@@ -54,18 +54,31 @@ n_cog = np.size(cognition)
 #set regression model type
 regr = Ridge(fit_intercept = True, max_iter=1000000)
 #set hyperparameter grid space you want to search through for the model
-alphas = np.linspace(10, 10000, num = 100, endpoint=True, dtype=None, axis=0)
+alphas = np.linspace(10, 10000, num = 10, endpoint=True, dtype=None, axis=0)
 #set y to be the cognitive metrics you want to predict. They are the same for every atlas (each subject has behavioural score regradless of parcellation)
 Y = cog_metric
 
 
-for data_path_i, data_path in enumerate(data_paths): ##loop over atlases
-    
-    cuurent_path = data_paths[data_path_i+1]
-    current_atlas = cuurent_path.split('/')[-1].split('-')[-1].split('.')[0]
-    print(f'current atlas: ' + current_atlas)
+column_names_pred = []
+column_names_real = []    
 
-    fc = regresson.load_data(cuurent_path) ##set the imput variable to the current atlas connectome, gives subjects x features matrix
+
+for perm_ixd in range(perm):
+    for cog in cognition:
+        column_names_pred.append(f'{cog}_perm_{perm_ixd + 1}_pred')
+        column_names_real.append(f'{cog}_perm_{perm_ixd + 1}_real')
+
+
+for data_path_i, data_path in enumerate(data_paths): ##loop over atlases
+        
+    current_path = data_path
+    current_atlas = current_path.split('/')[-1].split('_')[-1].split('.')[0] #change this gives v short names for some of the altases
+    print(f'current ' + current_atlas)
+
+    if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068'):
+        continue
+
+    fc = regresson.load_data(current_path) ##set the imput variable to the current atlas connectome, gives subjects x features matrix
 
     #set x data to be the input variable you want to use (we use always fc)
     
@@ -75,18 +88,19 @@ for data_path_i, data_path in enumerate(data_paths): ##loop over atlases
 
     #set the number of features 
     n_feat = X.shape[1]
-    r2, preds, var, corr, featimp, cogtest,opt_alphas = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,cognition = cognition)
+    r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,cognition = cognition)
     
     ##save data:
-    result_df = pd.DataFrame() ## empty dataframe, filled with colums where each row is one permutation
-    preds_df = pd.DataFrame()
 
-    for cog_i, cog_names in enumerate(cognition):
-            result_df[f'{cog_names}' + '_r2'] = r2[:,cog_i] #fill in the r2 values
-            result_df[f'{cog_names}' + '_var'] = var[:,cog_i] #fill in explained variation values
-            result_df[f'{cog_names}' + '_opt_alphas'] = opt_alphas[:,cog_i] #fill in optimal alpha values
-            for perm_n in range(preds.shape[0]): 
-                preds_df[f'{cog_names}_perm_{perm_n + 1}_preds'] = preds[perm_n,cog_i,:] #fill in preditions
-                preds_df[f'{cog_names}_perm_{perm_n + 1}_real'] = cogtest[perm_n,cog_i,:] #fill in real_values
+    df_preds = pd.DataFrame(preds.reshape(perm * n_cog,n_pred).T,columns = column_names_pred) ## we flatten the permutation axis 
+    df_real = pd.DataFrame(cogtest.reshape(perm * n_cog,n_pred).T,columns = column_names_real)
+    preds_real_df = pd.concat([df_preds,df_real],axis = 1, sort = True)
+
+
+    result_r2 = pd.DataFrame(columns = [cog + '_r2' for cog in cognition], data = r2)
+    result_var = pd.DataFrame(columns = [cog + '_var' for cog in cognition], data = var)
+    opt_alphas_df = pd.DataFrame(columns = [cog + '_opt_alphas' for cog in cognition])
+    result_df = pd.concat([result_var,result_r2],axis = 1)
+
     result_df.to_csv(path + f'results/ridge_regression/ridge_results_atlas-{current_atlas}.csv')
-    preds_df.to_csv(path + f'results/ridge_regression/ridge_preds_atlas-{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/ridge_regression/ridge_preds_atlas-{current_atlas}.csv')

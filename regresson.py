@@ -13,6 +13,7 @@ import time
 
 from sklearn.metrics import explained_variance_score, r2_score
 from sklearn.linear_model import Ridge
+
 #from sklearn.kernel_ridge import KernelRidge
 #from sklearn.linear_model import Lasso
 #from sklearn.svm import SVR
@@ -169,7 +170,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             #extract feature importance
             featimp[p,:,cog] = model.coef_
         
-    return r2, preds, var, corr, featimp, cogtest,opt_alpha
+    return r2, preds, var, corr, featimp, cogtest,opt_alpha, y_test.shape[0]
 
 
 
