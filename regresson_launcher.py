@@ -110,5 +110,5 @@ for data_path_i, data_path in enumerate(data_paths): ##loop over atlases
     opt_alphas_df = pd.DataFrame(columns = [cog + '_opt_alphas' for cog in cognition], data =  opt_alphas)
     result_df = pd.concat([result_var,result_r2,opt_alphas_df],axis = 1)
 
-    result_df.to_csv(path + f'results/ridge_regression/ridge_results_norm_{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/ridge_regression/ridge_preds_norm_{current_atlas}.csv')
+    result_df.to_csv(path + f'results/ridge_regression/ridge_results_9.5_{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/ridge_regression/ridge_preds_9.5_{current_atlas}.csv')
