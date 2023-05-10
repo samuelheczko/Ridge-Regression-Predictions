@@ -17,7 +17,7 @@ from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold
 ##defime global parameters
 
-cluster = False
+cluster = True
 if cluster:
     path = '/home/sheczko/ptmp/data/' #Cluster
 else:
