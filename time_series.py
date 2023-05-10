@@ -3,7 +3,6 @@ import os
 import connectome
 import nibabel as nib
 import pandas as pd
-import regresson
 
 import sys; sys.path
 import pandas as pd
@@ -18,7 +17,7 @@ from sklearn.linear_model import Ridge
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold
 ##defime global parameters
 
-cluster = True
+cluster = False
 if cluster:
     path = '/home/sheczko/ptmp/data/' #Cluster
 else:
