@@ -13,6 +13,8 @@ import time
 
 from sklearn.metrics import explained_variance_score, r2_score
 from sklearn.linear_model import Ridge
+from snapml import LinearRegression
+
 
 
 #from sklearn.kernel_ridge import KernelRidge
@@ -82,7 +84,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
     featimp = np.zeros([perm,n_feat,n_cog])
 
     #set the param grid be to the hyperparamters you want to search through
-    paramGrid ={'alpha': alphas}
+    paramGrid ={'regularizer': alphas}
 
     #iterate through permutations
     for p in range(perm):
@@ -152,7 +154,8 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
 
 
             #fit model using optimised hyperparameter
-            model = Ridge(fit_intercept = True, alpha = opt_alpha[p,cog], max_iter=1000000)
+            model = LinearRegression(fit_intercept = True, regularizer = opt_alpha[p,cog],use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
+            #model = Ridge(fit_intercept = True, alpha = opt_alpha[p,cog], max_iter=1000000,dual=False)
 
             model.fit(x_train, y_train)
             

@@ -18,9 +18,12 @@ from sklearn.preprocessing import normalize
 from sklearn.metrics import explained_variance_score, r2_score
 from sklearn.linear_model import Ridge
 
+from snapml import LinearRegression
+
+
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold
 
-cluster = True
+cluster = False
 if cluster:
     path = '/home/sheczko/ptmp/data/' #global path for cluster
 else:
@@ -44,7 +47,7 @@ cognition = ['GCA','bmi']
 cog_metric = np.transpose(np.asarray([GCA, bmi]))
 
 #set the number of permutations you want to perform
-perm = 50
+perm = 30
     #set the number of cross-validation loops you want to perform
 cv_loops = 5
 #set the number of folds you want in the inner and outer folds of the nested cross-validation
@@ -54,8 +57,9 @@ train_size = .8
 #set the number of variable you want to predict to be the number of variables stored in the cognition variablse
 n_cog = np.size(cognition)
 #set regression model type
-regr = Ridge(fit_intercept = True, max_iter=1000000)
 
+#regr = Ridge(fit_intercept = True, max_iter=1000000)
+regr = LinearRegression(fit_intercept = True, use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
 #set y to be the cognitive metrics you want to predict. They are the same for every atlas (each subject has behavioural score regradless of parcellation)
 Y = cog_metric
 
@@ -69,8 +73,9 @@ for perm_ixd in range(perm):
         column_names_pred.append(f'{cog}_perm_{perm_ixd + 1}_pred')
         column_names_real.append(f'{cog}_perm_{perm_ixd + 1}_real')
 
+        
 
-for data_path_i, data_path in enumerate(data_paths): ##loop over atlases
+for data_path_i, data_path in enumerate(data_paths[:3]): ##loop over atlases
         
     current_path = data_path
     current_atlas = current_path.split('/')[-1].split('_')[-1].split('.')[0] #change this gives v short names for some of the altases
@@ -110,5 +115,5 @@ for data_path_i, data_path in enumerate(data_paths): ##loop over atlases
     opt_alphas_df = pd.DataFrame(columns = [cog + '_opt_alphas' for cog in cognition], data =  opt_alphas)
     result_df = pd.concat([result_var,result_r2,opt_alphas_df],axis = 1)
 
-    result_df.to_csv(path + f'results/ridge_regression/ridge_results_9.5_{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/ridge_regression/ridge_preds_9.5_{current_atlas}.csv')
+    result_df.to_csv(path + f'results/ridge_regression/ridge_dual_results_9.5_{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/ridge_regression/ridge_dual_preds_9.5_{current_atlas}.csv')
