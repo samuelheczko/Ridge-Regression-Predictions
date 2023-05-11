@@ -124,6 +124,10 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
                 #set parameters for inner and outer loops for CV
                 inner_cv = KFold(n_splits=k, shuffle=True, random_state=i)
                 outer_cv = KFold(n_splits=k, shuffle=True, random_state=i)
+
+                print(inner_cv)
+                print(outer_cv)
+
                 
                 #define regressor with grid-search CV for inner loop
                 gridSearch = GridSearchCV(estimator=regr, param_grid=paramGrid, n_jobs=-1, 

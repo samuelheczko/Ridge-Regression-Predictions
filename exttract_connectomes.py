@@ -32,7 +32,7 @@ print(subjects_idxs)
 
 
 
-atlases = glob.glob(path + '/atlases/lawrance2021/label/Human/ICBM/*.nii.gz') ##get the atlases
+atlases = glob.glob(path + '/atlases/300_ROI_Set/*.nii') ##get the atlases
 anatomical_labels = glob.glob(path + '/atlases/lawrance2021/label/Human/Anatomical-labels-csv/*.csv') #get the anatomical labels (where available)
 anatomical_label_names = []
 for a_l in anatomical_labels:

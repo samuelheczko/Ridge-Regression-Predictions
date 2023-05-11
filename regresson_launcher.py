@@ -47,7 +47,7 @@ cognition = ['GCA','bmi']
 cog_metric = np.transpose(np.asarray([GCA, bmi]))
 
 #set the number of permutations you want to perform
-perm = 30
+perm = 50
     #set the number of cross-validation loops you want to perform
 cv_loops = 5
 #set the number of folds you want in the inner and outer folds of the nested cross-validation
@@ -113,7 +113,9 @@ for data_path_i, data_path in enumerate(data_paths[:3]): ##loop over atlases
     result_r2 = pd.DataFrame(columns = [cog + '_r2' for cog in cognition], data = r2)
     result_var = pd.DataFrame(columns = [cog + '_var' for cog in cognition], data = var)
     opt_alphas_df = pd.DataFrame(columns = [cog + '_opt_alphas' for cog in cognition], data =  opt_alphas)
-    result_df = pd.concat([result_var,result_r2,opt_alphas_df],axis = 1)
+    corr_df = pd.DataFrame(columns = [cog + '_corr' for cog in cognition], data =  corr)
+
+    result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
 
     result_df.to_csv(path + f'results/ridge_regression/ridge_dual_results_9.5_{current_atlas}.csv')
     preds_real_df.to_csv(path + f'results/ridge_regression/ridge_dual_preds_9.5_{current_atlas}.csv')
