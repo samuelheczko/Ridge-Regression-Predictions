@@ -35,11 +35,11 @@ for n_comp in comp_list:
         memory='nilearn_cache',
         memory_level=2,
         verbose=10,
-        mask_strategy='background',
+        mask_strategy='whole-brain-template',
         random_state=0,
         standardize = True,
         n_jobs = -1)
 
     canica.fit(imgs_paths)
 
-    canica.components_img_.to_filename(path + f'results/ICA/canICA_space-IBCM_ncomp_{n_comp}.nii.gz')
+    canica.components_img_.to_filename(path + f'results/ICA/canICA_space-IBCM_WB_mask_ncomp_{n_comp}.nii.gz')
