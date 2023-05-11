@@ -3,7 +3,7 @@ import os
 import connectome
 import nibabel as nib
 import pandas as pd
-import regresson
+#import regresson
 
 import sys; sys.path
 import pandas as pd
@@ -39,6 +39,7 @@ for n_comp in comp_list:
         random_state=0,
         standardize = True,
         n_jobs = -1)
+
     canica.fit(imgs_paths)
 
     canica.components_img_.to_filename(path + f'results/ICA/canICA_space-IBCM_ncomp_{n_comp}.nii.gz')
