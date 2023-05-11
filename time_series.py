@@ -27,7 +27,7 @@ correlation_measure = 'correlation' #can be also tangent, partial
 res_n = 1
 res = f'{res_n}x{res_n}x{res_n}'
 correlation_measure='correlation' ##set for calculation of the brain connectome, choose from 'correlation', 'tangent', 'partial' as implemented by nilearn
-#templateICBM = '/kyb/agks/sheczko/Downloads/MastersThesis/code/data/templates/mni_icbm152_nlin_asym_09c_nifti/mni_icbm152_nlin_asym_09c/mni_icbm152_t1_tal_nlin_asym_09c.nii' ##use the ICBM T1 template
+
 
 
 ##add the data and names of thigs
@@ -39,6 +39,8 @@ subjects_idxs = []
 for s_n in imgs_paths:
     subjects_idxs.append(s_n.split('_')[-1].split('.')[0]) #split the path to extract only the number of the subject from path
 
+
+colnames=['idx','anatomical_label']
 
 
 atlases = glob.glob(path + '/atlases/lawrance2021/label/Human/ICBM/*.nii.gz') ##get the atlases
@@ -52,13 +54,18 @@ for a_l in anatomical_labels:
 
 
 for atlas_path in atlases: ##loop over atlases
+
     atlas_name = (atlas_path.split('/')[-1].split('.')[0].split('_')[0]) #split the atlas path so we
     print(atlas_name)
     al_p = (any(n == atlas_name for n in anatomical_label_names)) ##find wheter we have the anatomical labellings for this atlas
 
+    if atlas_path in glob.glob(path + '/results/time_series/*.csv'):
+        
+        continue #skip the atlases we already have
+
     if al_p:
         anatomic_path = path + f'/atlases/lawrance2021/label/Human/Anatomical-labels-csv/' + atlas_name + '.csv'
-        ana_labels = pd.read_csv(anatomic_path,names=colnames, header=None)
+        ana_labels = pd.read_csv(anatomic_path, names=colnames, header=None)
         ana_labels = ana_labels[ana_labels['idx'] != 0]
     else:
         ana_labels = None
