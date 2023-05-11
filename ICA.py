@@ -36,10 +36,10 @@ for n_comp in comp_list:
         memory='nilearn_cache',
         memory_level=2,
         verbose=10,
-        #mask_strategy='whole-brain-template',
+        mask_strategy='whole-brain-template',
         random_state=0,
         standardize = True,
-        n_jobs = -1)
+        n_jobs = 1)
 
     canica.fit(imgs_paths)
 
