@@ -41,4 +41,4 @@ for n_comp in comp_list:
         n_jobs = -1)
     canica.fit(imgs_paths)
 
-    canica.components_img_.to_filename(path + f'results/ICA/space-IBCM_atlas-canICA_ncomp_{n_comp}.nii.gz')
+    canica.components_img_.to_filename(path + f'results/ICA/canICA_space-IBCM_ncomp_{n_comp}.nii.gz')
