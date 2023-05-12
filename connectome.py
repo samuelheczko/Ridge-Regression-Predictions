@@ -10,14 +10,20 @@ from nilearn import datasets
 from nilearn.connectome import ConnectivityMeasure
 from nilearn.maskers import MultiNiftiLabelsMasker
 from nilearn.maskers import MultiNiftiMasker
+from nilearn.maskers import MultiNiftiMapsMasker
+
+
 
 #path = '/kyb/agks/sheczko/Downloads/MastersThesis/code/data/' ##change this for the cluster version
 
 
-def calculate_time_series(atlas_path,imgs_paths,standartise = True):
+def calculate_time_series(atlas_path,imgs_paths,standardise = True,map_atlas = True):
     ##input: the atlas, images (paths), outputs: time series for each subject of each brain region (standardised)
     ##pass the chosen atlas to the multi masker that masks each brain region for each participant and extracts the time series
-    masker = MultiNiftiLabelsMasker(labels_img = atlas_path, standardize = standartise, memory='nilearn_cache', n_jobs = -1)
+    if map_atlas:
+        masker = MultiNiftiMapsMasker(maps_img = atlas_path, standardize = standardise, n_jobs = -1)
+    else:
+        masker = MultiNiftiLabelsMasker(labels_img = atlas_path, standardize = standartise, memory='nilearn_cache', n_jobs = -1)
     ##extract the time series from the data
     time_series = masker.fit_transform(imgs_paths)
     return time_series
