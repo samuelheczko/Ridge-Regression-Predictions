@@ -5,7 +5,7 @@ import glob
 
 
 ##defime global parameters
-cluster = False
+cluster = True
 if cluster:
     path = '/home/sheczko/ptmp/data/' #Cluster
 else:
