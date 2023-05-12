@@ -5,7 +5,7 @@ import glob
 
 
 ##defime global parameters
-cluster = True
+cluster = False
 if cluster:
     path = '/home/sheczko/ptmp/data/' #Cluster
 else:
@@ -13,10 +13,8 @@ else:
 correlation_measure = 'correlation' #can be also tangent, partial
 res_n = 1
 res = f'{res_n}x{res_n}x{res_n}'
-correlation_measure='correlation' ##set for calculation of the brain connectome, choose from 'correlation', 'tangent', 'partial' as implemented by nilearn
 #templateICBM = '/kyb/agks/sheczko/Downloads/MastersThesis/code/data/templates/mni_icbm152_nlin_asym_09c_nifti/mni_icbm152_nlin_asym_09c/mni_icbm152_t1_tal_nlin_asym_09c.nii' ##use the ICBM T1 template
 
-correlation_measure = 'tangent'
 
 
 ##add the data and names of things
@@ -60,7 +58,27 @@ for atlas_path in atlases: ##loop over atlases
 
     time_series = connectome.calculate_time_series(atlas_path = atlas_path,imgs_paths=imgs_paths)     ##get the time series of the from all subjects, using the atlas defined
 
+    df_time_series = pd.DataFrame()
+
+    ##save time series
+    for array_i, array in enumerate(time_series):
+        df_time_series = pd.concat([df_time_series,pd.DataFrame(data = array.flatten(), columns=['subj_' + str(array_i)] )], axis = 1)#get df with the activations for each subject 
+        
+    Brn_area_indecies = np.repeat(np.arange(time_series[0].shape[1]),time_series[0].shape[0])
+    if al_p:
+        df_labels = pd.DataFrame(data = ana_labels.iloc[Brn_area_indecies,1],columns=['anatomical_label'])
+        df_labels = df_labels.reset_index()
+        df_time_series = pd.concat([df_labels,df_time_series],axis = 1)
+    else:
+        df_time_series = pd.concat([pd.DataFrame(data = Brn_area_indecies,columns = ['brain_area_index']),df_time_series],axis = 1)
+
+    df_time_series.to_csv(path_or_buf = path + f'/results/time_series/time_series_n_sub-{len(time_series)}_atlas-{atlas_name}.csv') ##SAVE
+
+
+
     correlation_matrices, _ =  connectome.connectome(time_series = time_series,correlation_measure=correlation_measure) #get the connectivity matrices
 
-    df_ = connectome.save_connectomes_df(correlation_matrices,anatomical_label_presence = al_p, anatomic_labels = ana_labels, path_to_save = path + 'results/', atlas_name = atlas_name, n_subjects = correlation_matrices.shape[0], correlation_measure = correlation_measure,subject_ixds = subjects_idxs)
+    df_ = connectome.save_connectomes_df(correlation_matrices,anatomical_label_presence = al_p, anatomic_labels = ana_labels, path_to_save = path + 'results/connectomes', atlas_name = atlas_name, n_subjects = correlation_matrices.shape[0], correlation_measure = correlation_measure,subject_ixds = subjects_idxs)
     
+
+    print('everytihng ran succesfully:)')
