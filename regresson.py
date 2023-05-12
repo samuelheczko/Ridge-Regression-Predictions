@@ -13,7 +13,9 @@ import time
 
 from sklearn.metrics import explained_variance_score, r2_score
 from sklearn.linear_model import Ridge
-from snapml import LinearRegression
+#from snapml import LinearRegression
+from sklearn.utils.fixes import loguniform
+
 
 
 
@@ -23,7 +25,7 @@ from snapml import LinearRegression
 #from sklearn.pipeline import make_pipeline, Pipeline
 from sklearn.preprocessing import StandardScaler
 #from sklearn.linear_model import ElasticNet
-from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold, RandomizedSearchCV
 #from sklearn.preprocessing import StandardScaler
 #from sklearn.pipeline import Pipeline
 
@@ -61,7 +63,7 @@ def load_regressors(path):
     return regressors_df  #subjects as row, regressors as colums (one of them being the subject id)
 
 
-def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,cognition):
+def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,cognition,n_iter_search,random = True):
     ##input X, Y, amount of permutations done on the cv, k: amont of inner loops ot find optimal alpha, train_size: the proption of training dataset, n_cog: the amount of behavioural vairables tested, model:regression type, alhaps_n; the range of alphas to be searched, n_feat: the amount of features
 
     
@@ -84,7 +86,9 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
     featimp = np.zeros([perm,n_feat,n_cog])
 
     #set the param grid be to the hyperparamters you want to search through
-    paramGrid ={'regularizer': alphas}
+    #paramGrid ={'regularizer': alphas}
+    paramGrid ={'alpha': alphas}
+    n_iter_search = n_iter_search
 
     #iterate through permutations
     for p in range(perm):
@@ -125,16 +129,28 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
                 inner_cv = KFold(n_splits=k, shuffle=True, random_state=i)
                 outer_cv = KFold(n_splits=k, shuffle=True, random_state=i)
 
-                print(inner_cv)
-                print(outer_cv)
-
                 
-                #define regressor with grid-search CV for inner loop
-                gridSearch = GridSearchCV(estimator=regr, param_grid=paramGrid, n_jobs=-1, 
+                
+               
+                
+                if random:
+                    #define regressor with random-search CV for inner loop
+                    gridSearch = RandomizedSearchCV(estimator=regr, param_distributions = paramGrid, n_jobs=-1, n_iter=n_iter_search,
+                                            verbose=0, cv=inner_cv, scoring='r2')
+
+                    #fit regressor
+                    gridSearch.fit(x_train, y_train)
+                
+                else:
+                    #define regressor with random-search CV for inner loop
+                    gridSearch = GridSearchCV(estimator=regr, param_grid=paramGrid, n_jobs=-1, 
                                         verbose=0, cv=inner_cv, scoring='r2')
 
-                #fit regressor
-                gridSearch.fit(x_train, y_train)
+                    #fit regressor
+                    gridSearch.fit(x_train, y_train)
+                    
+                    gridSearch = GridSearchCV(estimator=regr, param_grid=paramGrid, n_jobs=-1, 
+                                        verbose=0, cv=inner_cv, scoring='r2')
 
                 #save parameters corresponding to the best score
                 best_params.append(list(gridSearch.best_params_.values()))
@@ -154,12 +170,12 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
 
 
             #save optimised alpha values
-            opt_alpha[p,cog] = np.median(best_params)
+            opt_alpha[p,cog] = np.mean(best_params)
 
 
             #fit model using optimised hyperparameter
-            model = LinearRegression(fit_intercept = True, regularizer = opt_alpha[p,cog],use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
-            #model = Ridge(fit_intercept = True, alpha = opt_alpha[p,cog], max_iter=1000000,dual=False)
+            #model = LinearRegression(fit_intercept = True, regularizer = opt_alpha[p,cog],use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
+            model = Ridge(fit_intercept = True, alpha = opt_alpha[p,cog], max_iter=1000000)
 
             model.fit(x_train, y_train)
             

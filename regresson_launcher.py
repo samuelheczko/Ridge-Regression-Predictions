@@ -19,6 +19,8 @@ from sklearn.metrics import explained_variance_score, r2_score
 from sklearn.linear_model import Ridge
 
 from snapml import LinearRegression
+from sklearn.utils.fixes import loguniform
+
 
 
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold
@@ -33,7 +35,7 @@ else:
 
 
 ##let's find the paths to the the csv connectivity data we ahve
-data_paths = glob.glob(path + '/results/connectomes/*.csv')
+data_paths = glob.glob(path + '/results/connectomes/*tangent*.csv')
 
 ##load up regresors
 regressors_df =  regresson.load_regressors(path + 'func_images/AOMIC/regressors/*.txt')
@@ -47,7 +49,7 @@ cognition = ['GCA','bmi']
 cog_metric = np.transpose(np.asarray([GCA, bmi]))
 
 #set the number of permutations you want to perform
-perm = 50
+perm = 10
     #set the number of cross-validation loops you want to perform
 cv_loops = 5
 #set the number of folds you want in the inner and outer folds of the nested cross-validation
@@ -58,8 +60,8 @@ train_size = .8
 n_cog = np.size(cognition)
 #set regression model type
 
-#regr = Ridge(fit_intercept = True, max_iter=1000000)
-regr = LinearRegression(fit_intercept = True, use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
+regr = Ridge(fit_intercept = True, max_iter=1000000)
+#regr = LinearRegression(fit_intercept = True, use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
 #set y to be the cognitive metrics you want to predict. They are the same for every atlas (each subject has behavioural score regradless of parcellation)
 Y = cog_metric
 
@@ -73,7 +75,7 @@ for perm_ixd in range(perm):
         column_names_pred.append(f'{cog}_perm_{perm_ixd + 1}_pred')
         column_names_real.append(f'{cog}_perm_{perm_ixd + 1}_real')
 
-        
+print(data_paths[:4])        
 
 for data_path_i, data_path in enumerate(data_paths[:3]): ##loop over atlases
         
@@ -97,11 +99,14 @@ for data_path_i, data_path in enumerate(data_paths[:3]): ##loop over atlases
 
 
     #set hyperparameter grid space you want to search through for the model
-    alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
+    #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
+    alphas = loguniform(100, 10e4)
+    n_iter = 5
 
 
 
-    r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,cognition = cognition)
+
+    r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,cognition = cognition,n_iter_search=n_iter)
     
     ##save data:
 
@@ -117,5 +122,5 @@ for data_path_i, data_path in enumerate(data_paths[:3]): ##loop over atlases
 
     result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
 
-    result_df.to_csv(path + f'results/ridge_regression/ridge_dual_results_9.5_{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/ridge_regression/ridge_dual_preds_9.5_{current_atlas}.csv')
+    result_df.to_csv(path + f'results/ridge_regression/ridge_results_tangent_11.5_{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/ridge_regression/ridge_preds_tangent_11.5_{current_atlas}.csv')
