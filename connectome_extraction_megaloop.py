@@ -23,11 +23,11 @@ if cluster:
     imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*.nii') ##load up all subejct images
 else:
     imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*000*.nii') ##load up a subset of the subejct imagesim
-print(imgs_paths)
+#print(imgs_paths)
 subjects_idxs = []
 for s_n in imgs_paths:
     subjects_idxs.append(s_n.split('_')[-1].split('.')[0]) #split the path to extract only the number of the subject from path
-print(subjects_idxs)
+#print(subjects_idxs)
 
 
 

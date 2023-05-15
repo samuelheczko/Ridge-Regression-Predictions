@@ -23,7 +23,7 @@ def calculate_time_series(atlas_path,imgs_paths,standardise = True,map_atlas = T
     if map_atlas:
         masker = MultiNiftiMapsMasker(maps_img = atlas_path, standardize = standardise, n_jobs = -1)
     else:
-        masker = MultiNiftiLabelsMasker(labels_img = atlas_path, standardize = standartise, memory='nilearn_cache', n_jobs = -1)
+        masker = MultiNiftiLabelsMasker(labels_img = atlas_path, standardize = standardise, memory='nilearn_cache', n_jobs = -1)
     ##extract the time series from the data
     time_series = masker.fit_transform(imgs_paths)
     return time_series
