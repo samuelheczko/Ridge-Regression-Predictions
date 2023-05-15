@@ -31,7 +31,7 @@ for s_n in imgs_paths:
 
 
 
-atlases = glob.glob(path + 'atlases/lawrance2021/label/Human/ICBM/*nii.gz') ##get the atlases
+atlases = glob.glob(path + 'atlases/300_ROI_Set/*.nii') ##get the atlases
 print (atlases)
 anatomical_labels = glob.glob(path + '/atlases/lawrance2021/label/Human/Anatomical-labels-csv/*.csv') #get the anatomical labels (where available)
 anatomical_label_names = []
@@ -40,7 +40,7 @@ for a_l in anatomical_labels:
 
 colnames=['idx','anatomical_label'] 
 
-correlation_measures = ['tangent','partial correlation','precision']
+correlation_measures = ['partial correlation','precision']
 
 ##loop over correlation measures
 for correlation_measure in correlation_measures:
