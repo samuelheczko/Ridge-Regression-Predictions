@@ -12,7 +12,7 @@ module add singularity
 
 export SINGULARITY_BIND="/run,/ptmp,/scratch,/tmp,/opt/ohpc,${HOME}"
 
-singularity exec /ptmp/containers/datascience-python_latest.sif  python /home/sheczko/code1/MastersThesis/connectome_extraction_megaloop.py
+singularity exec /ptmp/containers/datascience-python_latest.sif  python /home/sheczko/code1/MastersThesis/connectome_extraction_megaloop_ICA.py
 
 
 exit 0
