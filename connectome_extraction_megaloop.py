@@ -31,7 +31,7 @@ print(subjects_idxs)
 
 
 
-atlases = glob.glob(path + '/results/DictMap/*nii.gz') ##get the atlases
+atlases = glob.glob(path + 'atlases/lawrance2021/label/Human/ICBM/*nii.gz') ##get the atlases
 print (atlases)
 anatomical_labels = glob.glob(path + '/atlases/lawrance2021/label/Human/Anatomical-labels-csv/*.csv') #get the anatomical labels (where available)
 anatomical_label_names = []
@@ -40,11 +40,11 @@ for a_l in anatomical_labels:
 
 colnames=['idx','anatomical_label'] 
 
-correlation_measures = ['tangent','correlation','partial correlation','precision']
+correlation_measures = ['tangent','partial correlation','precision']
 
 ##loop over correlation measures
 for correlation_measure in correlation_measures:
-##loop over atlases
+##loop over atlases 
 
     for atlas_path in atlases: ##loop over atlases
         atlas_name = (atlas_path.split('/')[-1].split('.')[0].split('_')[0]) #split the atlas path so we have the name
@@ -61,7 +61,7 @@ for correlation_measure in correlation_measures:
             ana_labels = None
 
 
-        time_series = connectome.calculate_time_series(atlas_path = atlas_path,imgs_paths=imgs_paths,map_atlas = True)     ##get the time series of the from all subjects, using the atlas defined
+        time_series = connectome.calculate_time_series(atlas_path = atlas_path,imgs_paths=imgs_paths,map_atlas = False)     ##get the time series of the from all subjects, using the atlas defined
         
 
         df_time_series = pd.DataFrame()

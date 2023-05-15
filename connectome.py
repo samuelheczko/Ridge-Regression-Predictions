@@ -51,7 +51,7 @@ def save_connectomes_df(correlation_matrices,anatomical_label_presence, anatomic
         df_['brain_area_1 (index)'] = list(triangle_index[0] + 1)
         df_['brain_area_2 (index)'] = list(triangle_index[1] + 1)
     
-    df_.to_csv(path_or_buf = path_to_save + f'Connectomen_sub-{n_subjects}_correlationType-{correlation_measure}_atlas-{atlas_name}.csv')
+    df_.to_csv(path_or_buf = path_to_save + f'n_sub-{n_subjects}_correlationType-{correlation_measure}_atlas-{atlas_name}.csv')
 
     return df_
 
