@@ -31,7 +31,7 @@ print(subjects_idxs)
 
 
 
-atlases = glob.glob(path + '/results/ICA/*WB*') ##get the atlases
+atlases = glob.glob(path + '/results/DictMap/*nii.gz') ##get the atlases
 print (atlases)
 anatomical_labels = glob.glob(path + '/atlases/lawrance2021/label/Human/Anatomical-labels-csv/*.csv') #get the anatomical labels (where available)
 anatomical_label_names = []
@@ -40,10 +40,11 @@ for a_l in anatomical_labels:
 
 colnames=['idx','anatomical_label'] 
 
-correlation_measures = ['tangent','correlation','partial']
+correlation_measures = ['tangent','correlation','partial correlation','precision']
 
-##loop over atlases
+##loop over correlation measures
 for correlation_measure in correlation_measures:
+##loop over atlases
 
     for atlas_path in atlases: ##loop over atlases
         atlas_name = (atlas_path.split('/')[-1].split('.')[0].split('_')[0]) #split the atlas path so we have the name
@@ -83,7 +84,7 @@ for correlation_measure in correlation_measures:
 
         correlation_matrices, _ =  connectome.connectome(time_series = time_series,correlation_measure=correlation_measure) #get the connectivity matrices
 
-        df_ = connectome.save_connectomes_df(correlation_matrices,anatomical_label_presence = al_p, anatomic_labels = ana_labels, path_to_save = path + 'results/connectomes', atlas_name = atlas_name, n_subjects = correlation_matrices.shape[0], correlation_measure = correlation_measure,subject_ixds = subjects_idxs)
+        df_ = connectome.save_connectomes_df(correlation_matrices,anatomical_label_presence = al_p, anatomic_labels = ana_labels, path_to_save = path + 'results/connectomes/', atlas_name = atlas_name, n_subjects = correlation_matrices.shape[0], correlation_measure = correlation_measure,subject_ixds = subjects_idxs)
         
 
     print('round ran succesfully:)')
