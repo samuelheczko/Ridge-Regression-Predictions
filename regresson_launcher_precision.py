@@ -85,7 +85,7 @@ for perm_ixd in range(perm):
 for data_path_i, data_path in enumerate(csv_paths[:3]): ##loop over atlases
         
     current_path = data_path
-    current_path = csv_paths[4]
+    #current_path = csv_paths[4]
     current_atlas = current_path.split('/')[-1].split('_')[-1].split('.')[0] #change this gives v short names for some of the altases
     print(f'current ' + current_atlas)
 
