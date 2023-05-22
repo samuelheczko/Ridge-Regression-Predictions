@@ -31,7 +31,7 @@ if cluster:
 else:
     path = 'data/' ##local path for local computations
 
-CT = 'partial' #set the correlation type
+CT = 'precison' #set the correlation type
 
 
 csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant/*.csv')
@@ -82,7 +82,7 @@ for perm_ixd in range(perm):
 
 #print(data_paths[:4])        
 
-for data_path_i, data_path in enumerate(csv_paths[:3]): ##loop over atlases
+for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
         
     current_path = data_path
     #current_path = csv_paths[4]
