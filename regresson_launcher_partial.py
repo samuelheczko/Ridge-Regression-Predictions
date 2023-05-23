@@ -82,7 +82,7 @@ for perm_ixd in range(perm):
 
 #print(data_paths[:4])        
 
-for data_path_i, data_path in enumerate(csv_paths[3:]): ##loop over atlases
+for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
         
     current_path = data_path
     #current_path = csv_paths[4]
@@ -106,8 +106,8 @@ for data_path_i, data_path in enumerate(csv_paths[3:]): ##loop over atlases
 
     #set hyperparameter grid space you want to search through for the model
     #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
-    alphas = loguniform(100, 10e4)
-    n_iter = 50
+    alphas = loguniform(10, 10e4)
+    n_iter = 100
 
 
 
@@ -128,5 +128,5 @@ for data_path_i, data_path in enumerate(csv_paths[3:]): ##loop over atlases
 
     result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
 
-    result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_cor_{CT}_{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_cor_{CT}_{current_atlas}.csv')
+    result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_newalpha_cor_{CT}_{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_newalpha_cor_{CT}_{current_atlas}.csv')
