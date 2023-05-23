@@ -82,7 +82,7 @@ for perm_ixd in range(perm):
 
 #print(data_paths[:4])        
 
-for data_path_i, data_path in enumerate(csv_paths[3:]): ##loop over atlases
+for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
         
     current_path = data_path
     #current_path = csv_paths[4]
