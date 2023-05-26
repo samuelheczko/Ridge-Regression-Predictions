@@ -34,7 +34,7 @@ else:
 CT = 'tangent' #set the correlation type
 
 
-csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant/*.csv')
+csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant2/*.csv')
 print(csv_paths)
 
 
