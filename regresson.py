@@ -16,6 +16,8 @@ from sklearn.linear_model import Ridge
 #from snapml import LinearRegression
 from sklearn.utils.fixes import loguniform
 
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVR
 
 
 
@@ -149,8 +151,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
                     #fit regressor
                     gridSearch.fit(x_train, y_train)
                     
-                    gridSearch = GridSearchCV(estimator=regr, param_grid=paramGrid, n_jobs=-1, 
-                                        verbose=0, cv=inner_cv, scoring='r2')
+                    
 
                 #save parameters corresponding to the best score
                 best_params.append(list(gridSearch.best_params_.values()))
@@ -197,4 +198,136 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
     return r2, preds, var, corr, featimp, cogtest,opt_alpha, y_test.shape[0]
 
 
+
+
+
+def regressionSVR(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params,n_feat,cognition,n_iter_search,random = True):
+    ##input X, Y, amount of permutations done on the cv, k: amont of inner loops ot find optimal alpha, train_size: the proption of training dataset, n_cog: the amount of behavioural vairables tested, model:regression type, alhaps_n; the range of alphas to be searched, n_feat: the amount of features
+
+    
+
+
+    #create arrays to store variables
+    #r^2 - coefficient of determination
+    r2 = np.zeros([perm,n_cog])
+    #explained variance
+    var = np.zeros([perm,n_cog])
+    #correlation between true and predicted (aka prediction accuracy)
+    corr = np.zeros([perm,n_cog])
+    #optimised alpha (hyperparameter)
+    opt_params = np.zeros([perm,n_cog,len(params)])
+    #predictions made by the model
+    preds = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
+    #true test values for cognition
+    cogtest = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
+    #feature importance extracted from the model
+    featimp = np.zeros([perm,n_feat,n_cog])
+
+    #set the param grid be to the hyperparamters you want to search through
+    #paramGrid ={'regularizer': alphas}
+    param_dist = params
+    n_iter_search = n_iter_search
+
+    #iterate through permutations
+    for p in range(perm):
+        #print permutation # you're on
+        print('Permutation %d' %(p+1))
+        #split data into train and test sets
+        x_train, x_test, cog_train, cog_test = train_test_split(X, Y, test_size=1-train_size, 
+                                                                shuffle=True, random_state=p)
+        scaler = StandardScaler()
+        x_train_scaled = x_train
+        x_test_scaled = x_test
+        
+        #x_train_scaled = scaler.fit_transform(x_train)
+        #x_test_scaled = scaler.fit_transform(x_test)
+
+        
+        #iterate through the cognitive metrics you want to predict
+        for cog in range (n_cog):
+
+            #print cognitive metrics being predicted 
+            print ("Cognition: %s" % cognition[cog])
+            
+            #set y values for train and test based on     
+            y_train = cog_train[:,cog]
+            y_test = cog_test[:,cog]
+            
+            #store all the y_test values in a separate variable that can be accessed later if needed
+            cogtest[p,cog,:] = y_test
+
+
+            #create variables to store nested CV scores, and best parameters from hyperparameter optimisation
+            nested_scores = []
+            best_params = np.zeros([len(params),cv_loops])
+            
+
+            #optimise regression model using nested CV
+            print('Training Models')
+            
+            #go through the loops of the cross validation
+    
+            for i in range(cv_loops):
+
+
+                #set parameters for inner and outer loops for CV
+                inner_cv = KFold(n_splits=k, shuffle=True, random_state=i)
+                outer_cv = KFold(n_splits=k, shuffle=True, random_state=i)
+
+                
+            
+                #define regressor with random-search CV for inner loop
+                random_search = RandomizedSearchCV(estimator=regr, param_distributions = param_dist, n_jobs=-1, n_iter=n_iter_search,
+                                        verbose=0, cv=inner_cv, scoring='r2')
+
+                #fit regressor
+                random_search.fit(x_train, y_train)
+    
+                
+                
+
+                #save parameters corresponding to the best score
+                best_params[0,i] = random_search.best_params_['C']
+                best_params[1,i] = random_search.best_params_['epsilon']
+
+                #call cross_val_score for outer loop
+                nested_score = cross_val_score(random_search, X=x_train, y=y_train, cv=outer_cv, 
+                                            scoring='r2', verbose=1)
+
+                #record nested CV scores
+                nested_scores.append(np.median(nested_score))
+
+                #print how many cv loops are complete
+                print("%d/%d Complete" % (i+1,cv_loops))
+                
+            #once all CV loops are complete, fit models based on optimised hyperparameters    
+            print('Testing Models')
+
+
+            #save optimised alpha values
+            opt_params[p,cog,:] = np.mean(best_params,axis = 1)
+
+
+            #fit model using optimised hyperparameter
+            #model = LinearRegression(fit_intercept = True, regularizer = opt_alpha[p,cog],use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
+            model = SVR(max_iter=10000,kernel = 'linear', C = opt_params[p,cog,0], epsilon = opt_params[p,cog,1])
+
+            model.fit(x_train, y_train)
+            
+            #compute r^2 (coefficient of determination) 
+            r2[p,cog]=model.score(x_test,y_test)
+
+            #generate predictions from model
+            preds[p,cog,:] = model.predict(x_test).ravel()
+            
+            #compute explained variance 
+            var[p,cog] = explained_variance_score(y_test, preds[p,cog,:])
+
+            #compute correlation between true and predicted
+            corr[p,cog] = np.corrcoef(y_test, preds[p,cog,:])[1,0]
+
+            #extract feature importance
+            #featimp[p,:,cog] = model.coef_
+        
+    return r2, preds, var, corr, cogtest, opt_params, y_test.shape[0]
 

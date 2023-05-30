@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import time
 from sklearn.preprocessing import normalize
+from scipy.stats import uniform
 
 
 from sklearn.metrics import explained_variance_score, r2_score
@@ -20,6 +21,8 @@ from sklearn.linear_model import Ridge
 
 #from snapml import LinearRegression
 from sklearn.utils.fixes import loguniform
+from sklearn.svm import SVR
+
 
 
 
@@ -34,7 +37,7 @@ else:
 CT = 'tangent' #set the correlation type
 
 
-csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant2/*.csv')
+csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant/*.csv')
 print(csv_paths)
 
 
@@ -44,12 +47,13 @@ print(csv_paths)
 
 ##load up regresors
 regressors_df =  regresson.load_regressors(path + 'func_images/AOMIC/regressors/*.txt')
+print(regressors_df.head())
 ##choose the target variables, take as np arrays
 GCA = regressors_df.regressor_iq.values
 bmi = regressors_df.regressor_bmi.values
 
  #concatenate cognitive metrics into single variable
-cognition = ['GCA','bmi']
+cognition = ['GCA']
 #cognition = ['PMAT Correct', 'PMAT Response Time']
 cog_metric = np.transpose(np.asarray([GCA, bmi]))
 
@@ -65,7 +69,13 @@ train_size = .8
 n_cog = np.size(cognition)
 #set regression model type
 
-regr = Ridge(fit_intercept = True, max_iter=1000000)
+#regr = Ridge(fit_intercept = True, max_iter=1000000) ##RIDGE
+regr = SVR(kernel = 'linear', max_iter=10000) ##SVR
+params_dist = {'C' : uniform(loc = 0.1 , scale = 200),
+                'epsilon': uniform(loc = 0.001, scale = 15)
+                }
+
+
 #regr = LinearRegression(fit_intercept = True, use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
 #set y to be the cognitive metrics you want to predict. They are the same for every atlas (each subject has behavioural score regradless of parcellation)
 Y = cog_metric
@@ -89,9 +99,9 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     current_atlas = current_path.split('/')[-1].split('_')[-1].split('.')[0] #take the atlas name
     print(f'current ' + current_atlas)
 
-    if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068'):
+    if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068','atlas-Schaefer400','atlas-DS00350','atlas-300ROis','atlas-AAL','atlas-canICA200','atlas-CPAC200','atlas-DictLearn200','atlas-DictLearn400','atlas-Glasser'):
 
-        print('skipping this atlas too many features:(')
+        print('BIG skip in this atlas')
         continue
 
     fc = regresson.load_data(current_path) ##set the imput variable to the current atlas connectome, gives subjects x features matrix
@@ -107,14 +117,16 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     #set hyperparameter grid space you want to search through for the model
     #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
     alphas = loguniform(10, 10e4)
-    n_iter = 100
+    n_iter = 20
 
 
 
 
-    r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,cognition = cognition, n_iter_search=n_iter)
+    r2, preds, var, corr, cogtest,opt_parameters,n_pred = regresson.regressionSVR(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, params = params_dist,n_feat = n_feat,cognition = cognition, n_iter_search=n_iter)
     
     ##save data:
+
+    print(f'prediction: {corr,var}')
 
     df_preds = pd.DataFrame(preds.reshape(perm * n_cog,n_pred).T,columns = column_names_pred) ## we flatten the permutation axis 
     df_real = pd.DataFrame(cogtest.reshape(perm * n_cog,n_pred).T,columns = column_names_real)
@@ -123,10 +135,12 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
 
     result_r2 = pd.DataFrame(columns = [cog + '_r2' for cog in cognition], data = r2)
     result_var = pd.DataFrame(columns = [cog + '_var' for cog in cognition], data = var)
-    opt_alphas_df = pd.DataFrame(columns = [cog + '_opt_alphas' for cog in cognition], data =  opt_alphas)
+    opt_cs_df = pd.DataFrame(columns = [cog + '_opt_cs' for cog in cognition], data =  opt_parameters[:,:,0])
+    opt_epsilons_df = pd.DataFrame(columns = [cog + '_opt_epsilons' for cog in cognition], data =  opt_parameters[:,:,1])
+
     corr_df = pd.DataFrame(columns = [cog + '_corr' for cog in cognition], data =  corr)
 
-    result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
+    result_df = pd.concat([result_var,result_r2,opt_cs_df,opt_epsilons_df,corr_df],axis = 1)
 
-    result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_newalpha_cor_{CT}_{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_newalpha_cor_{CT}_{current_atlas}.csv')
+    result_df.to_csv(path + f'results/SV_regression/{CT}/SVM_results_cor_{CT}_{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/SV_regression/{CT}/SVM_preds_cor_{CT}_{current_atlas}.csv')
