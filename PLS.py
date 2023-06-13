@@ -103,7 +103,7 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     current_atlas = current_path.split('/')[-1].split('_')[-1].split('.')[0] #change this gives v short names for some of the altases
     print(f'current ' + current_atlas)
 
-    if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068','atlas-Schaefer400','atlas-DS00350'):
+    if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068'):
 
         print('skipping this atlas too many features:(')
         continue
