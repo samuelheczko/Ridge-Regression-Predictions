@@ -31,13 +31,13 @@ from sklearn.utils.fixes import loguniform
 
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold
 
-cluster = False
+cluster = True
 if cluster:
     path = '/home/sheczko/ptmp/data/' #global path for cluster
 else:
     path = 'data/' ##local path for local computations
 
-CT = 'partial' #set the correlation type
+CT = 'tangent' #set the correlation type
 
 
 csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant/*.csv')
@@ -72,8 +72,10 @@ n_cog = np.size(cognition)
 #set regression model type
 
 regr = PLSRegression(max_iter=10000)
-params_dist = {'n_components' : randint(0,100)
+params_dist = {'n_components' : randint(5,101)
                 }
+#set the iterations for the random search
+n_iter = 10
 
 
 
@@ -101,7 +103,7 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     current_atlas = current_path.split('/')[-1].split('_')[-1].split('.')[0] #change this gives v short names for some of the altases
     print(f'current ' + current_atlas)
 
-    if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068'):
+    if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068','atlas-Schaefer400','atlas-DS00350'):
 
         print('skipping this atlas too many features:(')
         continue
@@ -118,12 +120,18 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
 
     #set hyperparameter grid space you want to search through for the model
     #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
-    n_iter = 100
 
 
-    r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regressionPLS(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr,  params = params_dist, n_feat = n_feat, cognition = cognition, n_iter_search=n_iter)
-    
+    r2, preds, var, corr, cogtest,opt_parameters,n_pred = regresson.regressionPLS(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr,  params = params_dist, n_feat = n_feat, cognition = cognition, n_iter_search=n_iter)
+
     ##save data:
+
+    df_preds = pd.DataFrame(preds.reshape(perm * n_cog,n_pred).T,columns = column_names_pred) ## we flatten the permutation axis 
+    df_real = pd.DataFrame(cogtest.reshape(perm * n_cog,n_pred).T,columns = column_names_real)
+    preds_real_df = pd.concat([df_preds,df_real],axis = 1, sort = True)
+
+
+    print(f'var: {var}, corr: {corr}')
 
     df_preds = pd.DataFrame(preds.reshape(perm * n_cog,n_pred).T,columns = column_names_pred) ## we flatten the permutation axis 
     df_real = pd.DataFrame(cogtest.reshape(perm * n_cog,n_pred).T,columns = column_names_real)
@@ -132,10 +140,12 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
 
     result_r2 = pd.DataFrame(columns = [cog + '_r2' for cog in cognition], data = r2)
     result_var = pd.DataFrame(columns = [cog + '_var' for cog in cognition], data = var)
-    opt_alphas_df = pd.DataFrame(columns = [cog + '_opt_alphas' for cog in cognition], data =  opt_alphas)
+    opt_n_comp_df = pd.DataFrame(columns = [cog + '_opt_n_comp' for cog in cognition], data =  opt_parameters[:,:,0])
+
     corr_df = pd.DataFrame(columns = [cog + '_corr' for cog in cognition], data =  corr)
 
-    result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
+    result_df = pd.concat([result_var,result_r2,opt_n_comp_df,corr_df],axis = 1)
 
-    result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_newalpha_cor_{CT}_{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_newalpha_cor_{CT}_{current_atlas}.csv')
+    result_df.to_csv(path + f'/results/PLS/{CT}/PLS_results_cor_{CT}_{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/PLS/{CT}/PLS_preds_cor_{CT}_{current_atlas}.csv')
+

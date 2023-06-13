@@ -367,11 +367,35 @@ def regressionPLS(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params, n_fe
     
     # iterate through permutations
     for p in range(perm):
-        # ... existing code ...
+        #print permutation # you're on
+        print('Permutation %d' %(p+1))
+        #split data into train and test sets
+        x_train, x_test, cog_train, cog_test = train_test_split(X, Y, test_size=1-train_size, 
+                                                                shuffle=True, random_state=p)
+        scaler = StandardScaler()
+        x_train_scaled = x_train
+        x_test_scaled = x_test
+        
+        #x_train_scaled = scaler.fit_transform(x_train)
+        #x_test_scaled = scaler.fit_transform(x_test)
+
+        
         
         # iterate through the cognitive metrics you want to predict
         for cog in range(n_cog):
-            # ... existing code ...
+            #print cognitive metrics being predicted 
+            print ("Cognition: %s" % cognition[cog])
+            
+            #set y values for train and test based on     
+            y_train = cog_train[:,cog]
+            y_test = cog_test[:,cog]
+            
+            #store all the y_test values in a separate variable that can be accessed later if needed
+            cogtest[p,cog,:] = y_test
+
+
+            
+            #go through the loops of the cross validation
             
             # create variables to store nested CV scores and best parameters from hyperparameter optimization
             nested_scores = []
@@ -382,6 +406,10 @@ def regressionPLS(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params, n_fe
             
             # go through the loops of cross-validation
             for i in range(cv_loops):
+
+                #set parameters for inner and outer loops for CV
+                inner_cv = KFold(n_splits=k, shuffle=True, random_state=i)
+                outer_cv = KFold(n_splits=k, shuffle=True, random_state=i)
                 # ... existing code ...
                 
                 # define regressor with random-search CV for inner loop
@@ -393,13 +421,14 @@ def regressionPLS(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params, n_fe
                 
                 # save parameters corresponding to the best score
                 best_params[:, i] = list(random_search.best_params_.values())
+                print(f'best params: {best_params[:, i]}')
 
                 # call cross_val_score for outer loop
-                nested_score = cross_val_score(random_search, X=x_train, y=y_train, cv=outer_cv,
-                                               scoring='r2', verbose=1)
+                #nested_score = cross_val_score(random_search, X=x_train, y=y_train, cv=outer_cv,
+                                               #scoring='r2', verbose=1)
 
                 # record nested CV scores
-                nested_scores.append(np.median(nested_score))
+                #nested_scores.append(np.median(nested_score))
 
                 # print how many CV loops are complete
                 print("%d/%d Complete" % (i + 1, cv_loops))
@@ -409,7 +438,7 @@ def regressionPLS(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params, n_fe
 
             # save optimized parameters
             opt_params[p, cog, :] = np.mean(best_params, axis=1)
-
+            print(f'opt params{int(opt_params[p, cog])}')
             # fit PLS model using optimized hyperparameters
             model = PLSRegression(n_components=int(opt_params[p, cog]))
             model.fit(x_train, y_train)
