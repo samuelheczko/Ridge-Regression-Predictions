@@ -37,7 +37,7 @@ if cluster:
 else:
     path = 'data/' ##local path for local computations
 
-CT = 'tanget' #set the correlation type
+CT = 'pearson' #set the correlation type
 
 
 csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant/*.csv')
