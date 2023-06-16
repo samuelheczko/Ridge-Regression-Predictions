@@ -14,6 +14,12 @@ import seaborn as sns
 import time
 from sklearn.preprocessing import normalize
 
+from sklearn.cross_decomposition import PLSRegression
+
+from scipy.stats import randint
+
+
+
 
 from sklearn.metrics import explained_variance_score, r2_score
 from sklearn.linear_model import Ridge
@@ -31,7 +37,7 @@ if cluster:
 else:
     path = 'data/' ##local path for local computations
 
-CT = 'tangent' #set the correlation type
+CT = 'pearson' #set the correlation type
 
 
 csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant/*.csv')
@@ -65,7 +71,15 @@ train_size = .8
 n_cog = np.size(cognition)
 #set regression model type
 
-regr = Ridge(fit_intercept = True, max_iter=1000000)
+regr = PLSRegression(max_iter=10000)
+params_dist = {'n_components' : randint(5,101)
+                }
+#set the iterations for the random search
+n_iter = 10
+
+
+
+
 #regr = LinearRegression(fit_intercept = True, use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
 #set y to be the cognitive metrics you want to predict. They are the same for every atlas (each subject has behavioural score regradless of parcellation)
 Y = cog_metric
@@ -106,15 +120,18 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
 
     #set hyperparameter grid space you want to search through for the model
     #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
-    alphas = loguniform(10, 10e4)
-    n_iter = 50
 
 
+    r2, preds, var, corr, cogtest,opt_parameters,n_pred = regresson.regressionPLS(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr,  params = params_dist, n_feat = n_feat, cognition = cognition, n_iter_search=n_iter)
 
-
-    r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,cognition = cognition, n_iter_search=n_iter)
-    
     ##save data:
+
+    df_preds = pd.DataFrame(preds.reshape(perm * n_cog,n_pred).T,columns = column_names_pred) ## we flatten the permutation axis 
+    df_real = pd.DataFrame(cogtest.reshape(perm * n_cog,n_pred).T,columns = column_names_real)
+    preds_real_df = pd.concat([df_preds,df_real],axis = 1, sort = True)
+
+
+    print(f'var: {var}, corr: {corr}')
 
     df_preds = pd.DataFrame(preds.reshape(perm * n_cog,n_pred).T,columns = column_names_pred) ## we flatten the permutation axis 
     df_real = pd.DataFrame(cogtest.reshape(perm * n_cog,n_pred).T,columns = column_names_real)
@@ -123,10 +140,12 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
 
     result_r2 = pd.DataFrame(columns = [cog + '_r2' for cog in cognition], data = r2)
     result_var = pd.DataFrame(columns = [cog + '_var' for cog in cognition], data = var)
-    opt_alphas_df = pd.DataFrame(columns = [cog + '_opt_alphas' for cog in cognition], data =  opt_alphas)
+    opt_n_comp_df = pd.DataFrame(columns = [cog + '_opt_n_comp' for cog in cognition], data =  opt_parameters[:,:,0])
+
     corr_df = pd.DataFrame(columns = [cog + '_corr' for cog in cognition], data =  corr)
 
-    result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
+    result_df = pd.concat([result_var,result_r2,opt_n_comp_df,corr_df],axis = 1)
 
-    result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_newalpha_cor_{CT}_{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_newalpha_cor_{CT}_{current_atlas}.csv')
+    result_df.to_csv(path + f'/results/PLS/{CT}/PLS_results_cor_{CT}_{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/PLS/{CT}/PLS_preds_cor_{CT}_{current_atlas}.csv')
+
