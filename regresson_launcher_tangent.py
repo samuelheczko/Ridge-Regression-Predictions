@@ -64,11 +64,16 @@ train_size = .8
 #set the number of variable you want to predict to be the number of variables stored in the cognition variablse
 n_cog = np.size(cognition)
 #set regression model type
-
 regr = Ridge(fit_intercept = True, max_iter=1000000)
 #regr = LinearRegression(fit_intercept = True, use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
 #set y to be the cognitive metrics you want to predict. They are the same for every atlas (each subject has behavioural score regradless of parcellation)
 Y = cog_metric
+
+ #set hyperparameter grid space you want to search through for the model
+#alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
+alphas = loguniform(10, 10e4)
+n_iter = 50
+
 
 
 column_names_pred = []
@@ -102,14 +107,6 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     X[X<0] = 0 #filter the negative values from the correlations
     #set the number of features 
     n_feat = X.shape[1]
-
-
-    #set hyperparameter grid space you want to search through for the model
-    #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
-    alphas = loguniform(10, 10e4)
-    n_iter = 50
-
-
 
 
     r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,cognition = cognition, n_iter_search=n_iter)
