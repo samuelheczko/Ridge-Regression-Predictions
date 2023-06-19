@@ -27,6 +27,9 @@ from sklearn.cross_decomposition import PLSRegression
 from scipy.stats import uniform
 
 
+from sklearn.feature_selection import r_regression
+
+
 
 
 #from sklearn.kernel_ridge import KernelRidge
@@ -73,7 +76,7 @@ def load_regressors(path):
     return regressors_df  #subjects as row, regressors as colums (one of them being the subject id)
 
 
-def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,cognition,n_iter_search,random = True):
+def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,cognition,n_iter_search,random = True,Feature_selection = True):
     ##input X, Y, amount of permutations done on the cv, k: amont of inner loops ot find optimal alpha, train_size: the proption of training dataset, n_cog: the amount of behavioural vairables tested, model:regression type, alhaps_n; the range of alphas to be searched, n_feat: the amount of features
 
     
@@ -107,10 +110,29 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
         #split data into train and test sets
         x_train, x_test, cog_train, cog_test = train_test_split(X, Y, test_size=1-train_size, 
                                                                 shuffle=True, random_state=p)
+        #print(cog_train)
+
+        if Feature_selection:
+
+            #print(cog_train[:,2])
+            w_edu = r_regression(x_test,cog_test[:,-1])
+
+            w_cog = r_regression(x_train,cog_train[:,0])
+            w_prod = w_cog * w_edu
+            w_prod[w_prod < 0] = 0
+            w_prod_norm = (w_prod - np.min(w_prod))/(np.max(w_prod)-np.min(w_prod))
+            #w_prod_norm[w_prod_norm > 0].shape
+            h_idx = np.argpartition(w_prod_norm,-n_feat)[-n_feat:]
+
+
+            x_train = x_train[:,h_idx] ##Select the highest features
+            x_test = x_test[:,h_idx]
+            print('feautres selected')
 
         
         #iterate through the cognitive metrics you want to predict
         for cog in range (n_cog):
+            print(f'ncog: {cog}')
 
             #print cognitive metrics being predicted 
             print ("Cognition: %s" % cognition[cog])
@@ -199,6 +221,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
 
             #compute correlation between true and predicted
             corr[p,cog] = np.corrcoef(y_test, preds[p,cog,:])[1,0]
+            print (var)
 
             #extract feature importance
             featimp[p,:,cog] = model.coef_

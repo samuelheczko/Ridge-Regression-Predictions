@@ -33,6 +33,8 @@ else:
 
 CT = 'tangent' #set the correlation type
 
+Feature_selection = True ##set the wheter to use the feature selection trick based on the education scores
+
 
 csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant/*.csv')
 print(csv_paths)
@@ -47,11 +49,12 @@ regressors_df =  regresson.load_regressors(path + 'func_images/AOMIC/regressors/
 ##choose the target variables, take as np arrays
 GCA = regressors_df.regressor_iq.values
 bmi = regressors_df.regressor_bmi.values
-
+edu = regressors_df.regressor_edu.values
+#print(edu)
  #concatenate cognitive metrics into single variable
-cognition = ['GCA','bmi']
+cognition = ['GCA'] #nanems o fthe cog metrics used
 #cognition = ['PMAT Correct', 'PMAT Response Time']
-cog_metric = np.transpose(np.asarray([GCA, bmi]))
+cog_metric = np.transpose(np.asarray([GCA, edu])) ##the df with the cog ntirics as columns
 
 #set the number of permutations you want to perform
 perm = 50
@@ -106,10 +109,13 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     X = fc
     X[X<0] = 0 #filter the negative values from the correlations
     #set the number of features 
-    n_feat = X.shape[1]
+    if Feature_selection:
+        n_feat = 1000
+    else:
+        n_feat = X.shape[1]
 
 
-    r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,cognition = cognition, n_iter_search=n_iter)
+    r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,cognition = cognition, n_iter_search=n_iter,Feature_selection = Feature_selection)
     
     ##save data:
 
@@ -125,5 +131,5 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
 
     result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
 
-    result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_newalpha_cor_{CT}_{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_newalpha_cor_{CT}_{current_atlas}.csv')
+    result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_FStd_cor_{CT}_{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_FStd_cor_{CT}_{current_atlas}.csv')
