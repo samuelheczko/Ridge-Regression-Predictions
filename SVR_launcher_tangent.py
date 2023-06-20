@@ -36,6 +36,9 @@ else:
 
 CT = 'tangent' #set the correlation type
 
+Feature_selection = True ##set the wheter to use the feature selection trick based on the education scores
+
+
 
 csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant/*.csv')
 print(csv_paths)
@@ -99,7 +102,7 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     current_atlas = current_path.split('/')[-1].split('_')[-1].split('.')[0] #take the atlas name
     print(f'current ' + current_atlas)
 
-    if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068','atlas-Schaefer400','atlas-DS00350','atlas-300ROis','atlas-AAL','atlas-canICA200','atlas-CPAC200','atlas-DictLearn200','atlas-DictLearn400','atlas-Glasser'):
+    if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068'):
 
         print('BIG skip in this atlas')
         continue
@@ -111,7 +114,10 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     X = fc
     X[X<0] = 0 #filter the negative values from the correlations
     #set the number of features 
-    n_feat = X.shape[1]
+    if Feature_selection:
+        n_feat = 1000
+    else:
+        n_feat = X.shape[1]
 
 
     #set hyperparameter grid space you want to search through for the model
@@ -122,7 +128,7 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
 
 
 
-    r2, preds, var, corr, cogtest,opt_parameters,n_pred = regresson.regressionSVR(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, params = params_dist,n_feat = n_feat,cognition = cognition, n_iter_search=n_iter)
+    r2, preds, var, corr, cogtest,opt_parameters,n_pred = regresson.regressionSVR(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, params = params_dist,n_feat = n_feat,cognition = cognition, n_iter_search=n_iter,Feature_selection = True)
     
     ##save data:
 
@@ -142,5 +148,9 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
 
     result_df = pd.concat([result_var,result_r2,opt_cs_df,opt_epsilons_df,corr_df],axis = 1)
 
-    result_df.to_csv(path + f'results/SV_regression/{CT}/SVM_results_cor_{CT}_{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/SV_regression/{CT}/SVM_preds_cor_{CT}_{current_atlas}.csv')
+    if Feature_selection:
+        result_df.to_csv(path + f'results/SV_regression/{CT}/SVM_results_FStd_n_feat_{n_feat}_cor_{CT}_{current_atlas}.csv')
+        preds_real_df.to_csv(path + f'results/SV_regression/{CT}/SVM_preds_FStd_n_feat_{n_feat}_cor_{CT}_{current_atlas}.csv')
+    else:
+        result_df.to_csv(path + f'results/SV_regression/{CT}/SVM_results_cor_{CT}_{current_atlas}.csv')
+        preds_real_df.to_csv(path + f'results/SV_regression/{CT}/SVM_preds_cor_{CT}_{current_atlas}.csv')

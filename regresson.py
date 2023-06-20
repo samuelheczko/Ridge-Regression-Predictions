@@ -264,9 +264,7 @@ def regressionSVR(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params,n_fea
         #split data into train and test sets
         x_train, x_test, cog_train, cog_test = train_test_split(X, Y, test_size=1-train_size, 
                                                                 shuffle=True, random_state=p)
-        scaler = StandardScaler()
-        x_train_scaled = x_train
-        x_test_scaled = x_test
+        
 
         if Feature_selection: ##select the features
 
