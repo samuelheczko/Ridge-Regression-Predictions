@@ -87,72 +87,71 @@ Y = cog_metric
 
 
 column_names_pred = []
-column_names_real = []    
-
+column_names_real = []
 
 for perm_ixd in range(perm):
-    for cog in cognition:
-        column_names_pred.append(f'{cog}_perm_{perm_ixd + 1}_pred')
-        column_names_real.append(f'{cog}_perm_{perm_ixd + 1}_real')
+        for cog in cognition:
+            column_names_pred.append(f'{cog}_perm_{perm_ixd + 1}_pred')
+            column_names_real.append(f'{cog}_perm_{perm_ixd + 1}_real')
 
-#print(data_paths[:4])        
+for n_feat in np.array([500,1000]):
 
-for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
+    for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
+            
+        current_path = data_path
+        #current_path = csv_paths[4]
+        current_atlas = current_path.split('/')[-1].split('_')[-1].split('.')[0] #take the atlas name
+        print(f'current ' + current_atlas)
+
+        if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068'):
+
+            print('BIG skip in this atlas')
+            continue
+
+        fc = regresson.load_data(current_path) ##set the imput variable to the current atlas connectome, gives subjects x features matrix
+
+        #set x data to be the input variable you want to use (we use always fc)
         
-    current_path = data_path
-    #current_path = csv_paths[4]
-    current_atlas = current_path.split('/')[-1].split('_')[-1].split('.')[0] #take the atlas name
-    print(f'current ' + current_atlas)
-
-    if current_atlas in ('atlas-Schaefer1000','atlas-Slab1068'):
-
-        print('BIG skip in this atlas')
-        continue
-
-    fc = regresson.load_data(current_path) ##set the imput variable to the current atlas connectome, gives subjects x features matrix
-
-    #set x data to be the input variable you want to use (we use always fc)
-    
-    X = fc
-    X[X<0] = 0 #filter the negative values from the correlations
-    #set the number of features 
-    if Feature_selection:
-        n_feat = 100
-    else:
-        n_feat = X.shape[1]
+        X = fc
+        X[X<0] = 0 #filter the negative values from the correlations
+        #set the number of features 
+        if Feature_selection:
+            n_feat = n_feat
+        else:
+            n_feat = X.shape[1]
 
 
-    #set hyperparameter grid space you want to search through for the model
-    #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
-    alphas = loguniform(10, 10e4)
-    n_iter = 100
+        #set hyperparameter grid space you want to search through for the model
+        #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
+        alphas = loguniform(10, 10e4)
+        n_iter = 100
 
 
 
 
-    r2, preds, var, corr, cogtest,opt_parameters,n_pred = regresson.regressionSVR(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, params = params_dist,n_feat = n_feat,cognition = cognition, n_iter_search=n_iter,Feature_selection = True)
-    
-    ##save data:
+        r2, preds, var, corr, cogtest,opt_parameters,n_pred = regresson.regressionSVR(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, params = params_dist,n_feat = n_feat,cognition = cognition, n_iter_search=n_iter,Feature_selection = True)
+        
+        ##save data:
 
-    print(f'prediction: {corr,var}')
+        print(f'prediction: {corr,var}')
 
-    df_preds = pd.DataFrame(preds.reshape(perm * n_cog,n_pred).T,columns = column_names_pred) ## we flatten the permutation axis 
-    df_real = pd.DataFrame(cogtest.reshape(perm * n_cog,n_pred).T,columns = column_names_real)
-    preds_real_df = pd.concat([df_preds,df_real],axis = 1, sort = True)
+        df_preds = pd.DataFrame(preds.reshape(perm * n_cog,n_pred).T,columns = column_names_pred) ## we flatten the permutation axis 
+        df_real = pd.DataFrame(cogtest.reshape(perm * n_cog,n_pred).T,columns = column_names_real)
+        preds_real_df = pd.concat([df_preds,df_real],axis = 1, sort = True)
 
 
-    result_r2 = pd.DataFrame(columns = [cog + '_r2' for cog in cognition], data = r2)
-    result_var = pd.DataFrame(columns = [cog + '_var' for cog in cognition], data = var)
-    opt_cs_df = pd.DataFrame(columns = [cog + '_opt_cs' for cog in cognition], data =  opt_parameters[:,:,0])
-    opt_epsilons_df = pd.DataFrame(columns = [cog + '_opt_epsilons' for cog in cognition], data =  opt_parameters[:,:,1])
+        result_r2 = pd.DataFrame(columns = [cog + '_r2' for cog in cognition], data = r2)
+        result_var = pd.DataFrame(columns = [cog + '_var' for cog in cognition], data = var)
+        opt_cs_df = pd.DataFrame(columns = [cog + '_opt_cs' for cog in cognition], data =  opt_parameters[:,:,0])
+        opt_epsilons_df = pd.DataFrame(columns = [cog + '_opt_epsilons' for cog in cognition], data =  opt_parameters[:,:,1])
 
-    corr_df = pd.DataFrame(columns = [cog + '_corr' for cog in cognition], data =  corr)
+        corr_df = pd.DataFrame(columns = [cog + '_corr' for cog in cognition], data =  corr)
 
-    result_df = pd.concat([result_var,result_r2,opt_cs_df,opt_epsilons_df,corr_df],axis = 1)
+        result_df = pd.concat([result_var,result_r2,opt_cs_df,opt_epsilons_df,corr_df],axis = 1)
 
-    if Feature_selection:
-        result_df.to_csv(path + f'results/SV_regression/{CT}/SVM_results_FStd_n_feat_{n_feat}_cor_{CT}_{current_atlas}.csv')
-        preds_real_df.to_csv(path + f'results/SV_regression/{CT}/SVM_preds_FStd_n_feat_{n_feat}_cor_{CT}_{current_atlas}.csv')
-    else:
-        result_df.to_csv(path + f'results/SV_regression/{CT}/SVM_results_cor_{CT}_{current_atlas}.csv')
-        preds_real_df.to_csv(path + f'results/SV_regression/{CT}/SVM_preds_cor_{CT}_{current_atlas}.csv')
+        if Feature_selection:
+            result_df.to_csv(path + f'results/SV_regression/{CT}/SVM_results_FStd_n_feat_{n_feat}_cor_{CT}_{current_atlas}.csv')
+            preds_real_df.to_csv(path + f'results/SV_regression/{CT}/SVM_preds_FStd_n_feat_{n_feat}_cor_{CT}_{current_atlas}.csv')
+        else:
+            result_df.to_csv(path + f'results/SV_regression/{CT}/SVM_results_cor_{CT}_{current_atlas}.csv')
+            preds_real_df.to_csv(path + f'results/SV_regression/{CT}/SVM_preds_cor_{CT}_{current_atlas}.csv')
