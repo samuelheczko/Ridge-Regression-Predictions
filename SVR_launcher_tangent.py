@@ -54,11 +54,13 @@ print(regressors_df.head())
 ##choose the target variables, take as np arrays
 GCA = regressors_df.regressor_iq.values
 bmi = regressors_df.regressor_bmi.values
+edu = regressors_df.regressor_edu.values
+
 
  #concatenate cognitive metrics into single variable
 cognition = ['GCA']
 #cognition = ['PMAT Correct', 'PMAT Response Time']
-cog_metric = np.transpose(np.asarray([GCA, bmi]))
+cog_metric = np.transpose(np.asarray([GCA, edu]))
 
 #set the number of permutations you want to perform
 perm = 50
@@ -115,7 +117,7 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     X[X<0] = 0 #filter the negative values from the correlations
     #set the number of features 
     if Feature_selection:
-        n_feat = 1000
+        n_feat = 100
     else:
         n_feat = X.shape[1]
 

@@ -1,9 +1,9 @@
 #!/bin/bash -l
-#SBATCH --job-name=connectome_extraction
+#SBATCH --job-name=regresson_tangent
  
 #SBATCH --nodes=1
 #SBATCH --exclusive
-#SBATCH --time=0-24:00:00
+#SBATCH --time=0-120:00:00
 #SBATCH --partition compute
 #SBATCH --output=/home/sheczko/logs/%j.out
 

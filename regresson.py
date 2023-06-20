@@ -256,6 +256,7 @@ def regressionSVR(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params,n_fea
     #paramGrid ={'regularizer': alphas}
     param_dist = params
     n_iter_search = n_iter_search
+    scaler = StandardScaler()
 
     #iterate through permutations
     for p in range(perm):
@@ -285,8 +286,8 @@ def regressionSVR(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params,n_fea
 
         
         
-        #x_train_scaled = scaler.fit_transform(x_train)
-        #x_test_scaled = scaler.fit_transform(x_test)
+        #x_train = scaler.fit_transform(x_train)
+        #x_test = scaler.fit_transform(x_test)
 
         
         #iterate through the cognitive metrics you want to predict
@@ -374,6 +375,7 @@ def regressionSVR(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params,n_fea
 
             #extract feature importance
             #featimp[p,:,cog] = model.coef_
+            print(f'r2: {r2}')
         
     return r2, preds, var, corr, cogtest, opt_params, y_test.shape[0]
 
