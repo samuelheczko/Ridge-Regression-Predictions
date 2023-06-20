@@ -74,7 +74,7 @@ Y = cog_metric
 
  #set hyperparameter grid space you want to search through for the model
 #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
-alphas = loguniform(10, 10e4)
+alphas = loguniform(1, 10e4)
 n_iter = 50
 
 
@@ -110,7 +110,7 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     X[X<0] = 0 #filter the negative values from the correlations
     #set the number of features 
     if Feature_selection:
-        n_feat = 1000
+        n_feat = 100
     else:
         n_feat = X.shape[1]
 
@@ -131,5 +131,5 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
 
     result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
 
-    result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_FStd_cor_{CT}_{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_FStd_cor_{CT}_{current_atlas}.csv')
+    result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_FStd_n_feat_100_cor_{CT}_{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_FStd_n_feat_100_cor_{CT}_{current_atlas}.csv')

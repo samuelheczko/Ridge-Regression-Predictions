@@ -232,7 +232,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
 
 
 
-def regressionSVR(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params,n_feat,cognition,n_iter_search,random = True):
+def regressionSVR(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params,n_feat,cognition,n_iter_search,random = True,Feature_selection = True):
     ##input X, Y, amount of permutations done on the cv, k: amont of inner loops ot find optimal alpha, train_size: the proption of training dataset, n_cog: the amount of behavioural vairables tested, model:regression type, alhaps_n; the range of alphas to be searched, n_feat: the amount of features
 
 
@@ -267,6 +267,25 @@ def regressionSVR(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params,n_fea
         scaler = StandardScaler()
         x_train_scaled = x_train
         x_test_scaled = x_test
+
+        if Feature_selection: ##select the features
+
+            #print(cog_train[:,2])
+            w_edu = r_regression(x_test,cog_test[:,-1])
+
+            w_cog = r_regression(x_train,cog_train[:,0])
+            w_prod = w_cog * w_edu
+            w_prod[w_prod < 0] = 0
+            w_prod_norm = (w_prod - np.min(w_prod))/(np.max(w_prod)-np.min(w_prod))
+            #w_prod_norm[w_prod_norm > 0].shape
+            h_idx = np.argpartition(w_prod_norm,-n_feat)[-n_feat:]
+
+
+            x_train = x_train[:,h_idx] ##Select the highest features
+            x_test = x_test[:,h_idx]
+            print('feautres selected')
+
+        
         
         #x_train_scaled = scaler.fit_transform(x_train)
         #x_test_scaled = scaler.fit_transform(x_test)
