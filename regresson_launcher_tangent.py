@@ -110,7 +110,7 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     X[X<0] = 0 #filter the negative values from the correlations
     #set the number of features 
     if Feature_selection:
-        n_feat = 500
+        n_feat = 5000
     else:
         n_feat = X.shape[1]
 
