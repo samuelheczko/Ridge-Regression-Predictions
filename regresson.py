@@ -115,10 +115,10 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
         if Feature_selection:
 
             #print(cog_train[:,2])
-            w_edu = r_regression(x_test,cog_test[:,-1])
+            #w_edu = r_regression(x_test,cog_test[:,-1])
 
             w_cog = r_regression(x_train,cog_train[:,0])
-            w_prod = w_cog * w_edu
+            w_prod = w_cog #* w_edu
             w_prod[w_prod < 0] = 0
             w_prod_norm = (w_prod - np.min(w_prod))/(np.max(w_prod)-np.min(w_prod))
             #w_prod_norm[w_prod_norm > 0].shape
