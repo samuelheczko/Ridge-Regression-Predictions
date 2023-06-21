@@ -256,8 +256,6 @@ def regressionSVR(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params,n_fea
     #paramGrid ={'regularizer': alphas}
     param_dist = params
     n_iter_search = n_iter_search
-    scaler = StandardScaler()
-
     #iterate through permutations
     for p in range(perm):
         #print permutation # you're on
@@ -283,6 +281,11 @@ def regressionSVR(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params,n_fea
             x_train = x_train[:,h_idx] ##Select the highest features
             x_test = x_test[:,h_idx]
             print('feautres selected')
+
+        scaler = StandardScaler().fit(x_train)
+        x_train = scaler.transform(x_train)
+        x_test = scaler.transform(x_test)
+
 
         
         

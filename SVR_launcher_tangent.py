@@ -75,10 +75,13 @@ n_cog = np.size(cognition)
 #set regression model type
 
 #regr = Ridge(fit_intercept = True, max_iter=1000000) ##RIDGE
-regr = SVR(kernel = 'linear', max_iter=10000) ##SVR
-params_dist = {'C' : uniform(loc = 0.1 , scale = 200),
-                'epsilon': uniform(loc = 0.001, scale = 15)
+regr = SVR(kernel = 'rbf', max_iter=10000) ##SVR
+params_dist = {'C' : loguniform(0.1 ,10e5),
+                'epsilon': loguniform(0.01, 10)
                 }
+
+n_iter = 100 ## amount of iterations done to find the parameters
+ 
 
 
 #regr = LinearRegression(fit_intercept = True, use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
@@ -94,7 +97,7 @@ for perm_ixd in range(perm):
             column_names_pred.append(f'{cog}_perm_{perm_ixd + 1}_pred')
             column_names_real.append(f'{cog}_perm_{perm_ixd + 1}_real')
 
-for n_feat in np.array([500,1000]):
+for n_feat in np.array([100,500,1000]):
 
     for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
             
@@ -123,9 +126,6 @@ for n_feat in np.array([500,1000]):
 
         #set hyperparameter grid space you want to search through for the model
         #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
-        alphas = loguniform(10, 10e4)
-        n_iter = 100
-
 
 
 
@@ -150,8 +150,8 @@ for n_feat in np.array([500,1000]):
         result_df = pd.concat([result_var,result_r2,opt_cs_df,opt_epsilons_df,corr_df],axis = 1)
 
         if Feature_selection:
-            result_df.to_csv(path + f'results/SV_regression/{CT}/SVM_results_FStd_n_feat_{n_feat}_cor_{CT}_{current_atlas}.csv')
-            preds_real_df.to_csv(path + f'results/SV_regression/{CT}/SVM_preds_FStd_n_feat_{n_feat}_cor_{CT}_{current_atlas}.csv')
+            result_df.to_csv(path + f'results/SV_regression/{CT}/SVM_results_FStd_n_feat_{n_feat}_rbf_scaled_cor_{CT}_{current_atlas}.csv')
+            preds_real_df.to_csv(path + f'results/SV_regression/{CT}/SVM_preds_FStd_n_feat_{n_feat} rbf_scaled_cor_{CT}_{current_atlas}.csv')
         else:
             result_df.to_csv(path + f'results/SV_regression/{CT}/SVM_results_cor_{CT}_{current_atlas}.csv')
             preds_real_df.to_csv(path + f'results/SV_regression/{CT}/SVM_preds_cor_{CT}_{current_atlas}.csv')
