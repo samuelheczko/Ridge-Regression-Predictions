@@ -131,5 +131,5 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
 
     result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
 
-    result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_FStd_n_feat_{n_feat}_iq_only_cor_{CT}_{current_atlas}.csv')
-    preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_FStd_n_feat_{n_feat}_iq_only_cor_{CT}_{current_atlas}.csv')
+    result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_FStd_n_feat_{n_feat}_edu_only_cor_{CT}_{current_atlas}.csv')
+    preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_FStd_n_feat_{n_feat}_edu_only_cor_{CT}_{current_atlas}.csv')
