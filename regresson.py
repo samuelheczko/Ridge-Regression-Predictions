@@ -504,3 +504,40 @@ def regressionPLS(X, Y, perm, cv_loops, k, train_size, n_cog, regr, params, n_fe
             # featimp[p, :, cog] = model.coef_
     
     return r2, preds, var, corr, cogtest, opt_params, y_test.shape[0]
+
+
+def importance_extractor(X, Y, perm, train_size, n_cog,n_feat,cognition):
+    ##input X, Y, size of the train/test, number of cognitive features
+
+    
+
+    featimp = np.zeros([perm,n_feat,n_cog])
+
+    #iterate through permutations
+    for p in range(perm):
+        for cog in range(n_cog):
+
+            #print permutation # you're on
+            print('Permutation %d' %(p+1))
+            #split data into train and test sets
+            x_train, x_test, cog_train, cog_test = train_test_split(X, Y, test_size=1-train_size, 
+                                                                    shuffle=True, random_state=p)
+            #print(cog_train)
+
+        
+            #print(cog_train[:,2])
+            w_edu = r_regression(x_test,cog_test[:,-1])
+
+            w_cog = r_regression(x_train,cog_train[:,-1])
+            w_prod = w_cog * w_edu
+            w_prod[w_prod < 0] = 0
+            w_prod_norm = (w_prod - np.min(w_prod))/(np.max(w_prod)-np.min(w_prod))
+            #w_prod_norm[w_prod_norm > 0].shape
+            #h_idx = np.argpartition(w_prod_norm,-n_feat)[-n_feat:]
+            featimp[p,:,cog] = w_prod_norm
+        #print(w_prod_norm)
+
+
+        print(f'feautres selected, fold {p}')
+        
+    return(featimp)
