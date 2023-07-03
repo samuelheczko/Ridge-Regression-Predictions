@@ -115,4 +115,4 @@ for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
     #preds_real_df = pd.concat([df_preds,df_real],axis = 1, sort = True)
 
 
-    df_feat.to_csv(path + f'results/feature_importance/{CT}/feature_importanace_edu_iq_{current_atlas}.csv')
+    df_feat.to_csv(path + f'results/feature_importance/{CT}/feature_importanace_both_{current_atlas}.csv')
