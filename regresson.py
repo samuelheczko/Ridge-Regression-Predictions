@@ -117,7 +117,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             #print(cog_train[:,2])
             w_edu = r_regression(x_test,cog_test[:,-1])
 
-            w_cog = r_regression(x_train,cog_train[:,-1])
+            w_cog = r_regression(x_train,cog_train[:,0]) ## choose cog_train[0] for iq, [-1] for edu
             w_prod = w_cog * w_edu
             w_prod[w_prod < 0] = 0
             w_prod_norm = (w_prod - np.min(w_prod))/(np.max(w_prod)-np.min(w_prod))
@@ -528,7 +528,7 @@ def importance_extractor(X, Y, perm, train_size, n_cog,n_feat,cognition):
             #print(cog_train[:,2])
             w_edu = r_regression(x_test,cog_test[:,-1])
 
-            w_cog = r_regression(x_train,cog_train[:,-1])
+            w_cog = r_regression(x_train,cog_train[:,0])
             w_prod = w_cog * w_edu
             w_prod[w_prod < 0] = 0
             w_prod_norm = (w_prod - np.min(w_prod))/(np.max(w_prod)-np.min(w_prod))
