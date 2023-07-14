@@ -25,26 +25,18 @@ from sklearn.utils.fixes import loguniform
 
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold
 
-cluster = True
+cluster = False
 if cluster:
     path = '/home/sheczko/ptmp/data/' #global path for cluster
 else:
     path = 'data/' ##local path for local computations
-
-CT = 'tangent' #set the correlation type
-
-
-csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant/*.csv')
-print(csv_paths)
-
-
 
 ##let's find the paths to the the csv connectivity data we ahve
 #data_paths = glob.glob(path + '/results/connectomes/*tangent*.csv')
 
 CT = 'tangent'
 
-csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant/*.csv')
+csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant2/*.csv')
 
 column_names_importance = []
 

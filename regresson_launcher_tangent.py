@@ -36,7 +36,7 @@ CT = 'tangent' #set the correlation type
 Feature_selection = True ##set the whether to use the feature selection trick based on the education scores
 
 
-csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant/*.csv')
+csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant3/*.csv')
 print(csv_paths)
 
 
@@ -90,7 +90,7 @@ for perm_ixd in range(perm):
 
 #print(data_paths[:4])     
 # 
-for n_feat in np.array([1250,1500,2000]):   
+for n_feat in np.array([250,750,1750,2250,2500,2750,3000,3250,3500]):   
 
     for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
             
@@ -133,5 +133,5 @@ for n_feat in np.array([1250,1500,2000]):
 
         result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
 
-        result_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_results_FStd_n_feat_{n_feat}__both_{CT}_{current_atlas}.csv')
-        preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/ridge_preds_FStd_n_feat_{n_feat}_both_{CT}_{current_atlas}.csv')
+        result_df.to_csv(path + f'results/ridge_regression/{CT}/feat_select/ridge_results_FStd_n_feat_{n_feat}__both_{CT}_{current_atlas}.csv')
+        preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/feat_select/ridge_preds_FStd_n_feat_{n_feat}_both_{CT}_{current_atlas}.csv')
