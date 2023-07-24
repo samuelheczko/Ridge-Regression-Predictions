@@ -3,10 +3,9 @@ import pandas as pd
 import numpy as np
 import glob
 import pandas as pd
-
+from nilearn import datasets
 
 from nilearn.maskers import NiftiSpheresMasker
-import connectome
 
 
 
@@ -27,7 +26,7 @@ else:
     imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*000*.nii') ##load up a subset of the subejct imagesim
 
 imgs_paths_df = pd.DataFrame(imgs_paths)
-imgs_paths_df.to_csv(path + 'results/img_labels.csv') #save the order of the subjects in the images as csv
+imgs_paths_df.to_csv(path + 'results/img_labels_dosenbach160.csv') #save the order of the subjects in the images as csv
 
 subjects_idxs = []
 for s_n in imgs_paths:
