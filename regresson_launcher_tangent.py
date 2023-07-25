@@ -36,7 +36,7 @@ CT = 'tangent' #set the correlation type
 Feature_selection = True ##set the whether to use the feature selection trick based on the education scores
 
 
-csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant3/*.csv')
+csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant4/*.csv')
 print(csv_paths)
 
 
@@ -90,7 +90,7 @@ for perm_ixd in range(perm):
 
 #print(data_paths[:4])     
 # 
-for n_feat in np.array([250,750,1750,2250,2500,2750,3000,3250,3500]):   
+for n_feat in np.array([500,1000]):   
 
     for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
             
