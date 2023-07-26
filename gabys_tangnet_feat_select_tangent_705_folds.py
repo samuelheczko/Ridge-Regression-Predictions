@@ -25,7 +25,7 @@ from sklearn.utils.fixes import loguniform
 
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold
 
-cluster = False
+cluster = True
 if cluster:
     path = '/home/sheczko/ptmp/data/' #global path for cluster
 else:
@@ -36,8 +36,13 @@ CT = 'tangent' #set the correlation type
 Feature_selection = True ##set the whether to use the feature selection trick based on the education scores
 
 
-csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_relevant4/*.csv')
+csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_gabys/*.csv')
 print(csv_paths)
+
+folds_gaby = pd.read_csv(path + '/manual_folds/folds_705_176.txt')
+folds_gaby = folds_gaby[~folds_gaby['#----------------------------------------'].str.contains('------------------------------------')]
+folds_gaby2 = folds_gaby[~folds_gaby['#----------------------------------------'].str.contains('set')]
+
 
 
 
@@ -57,7 +62,7 @@ cognition = ['GCA'] #nanems o fthe cog metrics used
 cog_metric = np.transpose(np.asarray([GCA, edu])) ##the df with the cog ntirics as columns
 print(f'cog metric shape {cog_metric.shape}')
 #set the number of permutations you want to perform
-perm = 50
+perm = 100
 #set the number of cross-validation loops you want to perform
 cv_loops = 5
 #set the number of folds you want in the inner and outer folds of the nested cross-validation
@@ -90,7 +95,7 @@ for perm_ixd in range(perm):
 
 #print(data_paths[:4])     
 # 
-for n_feat in np.array([500,1000]):   
+for n_feat in np.array([2250]):   
 
     for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
             
@@ -118,7 +123,7 @@ for n_feat in np.array([500,1000]):
 
 
         r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,
-        cognition = cognition, n_iter_search=n_iter,Feature_selection = Feature_selection)
+        cognition = cognition, n_iter_search=n_iter,Feature_selection = Feature_selection,manual_folds = True,fold_list = folds_gaby2,n_test = 175,n_train = 705)
         
         ##save data:
 
@@ -134,5 +139,5 @@ for n_feat in np.array([500,1000]):
 
         result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
 
-        result_df.to_csv(path + f'results/ridge_regression/{CT}/feat_select/ridge_results_FStd_n_feat_{n_feat}__both_{CT}_{current_atlas}.csv')
-        preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/feat_select/ridge_preds_FStd_n_feat_{n_feat}_both_{CT}_{current_atlas}.csv')
+        result_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_results_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_705.csv')
+        preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_preds_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_705.csv')

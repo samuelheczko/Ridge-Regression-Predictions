@@ -50,6 +50,7 @@ def load_data(path):
     fc_panda = pd.read_csv(path) #load in the desired datafile
     sorted_df = fc_panda.sort_index(axis=1) ##sort for subjects in order
     #print(sorted_df.columns)
+    #print(sorted_df.columns)
     #print(f'currently the shape of the array is {sorted_df.shape}. We need to cut the columns which dont contain subject connectome data)')
     fc = sorted_df.loc[:,sorted_df.columns.str.startswith('sub')].T.values # derive the pure connectome as np array where each subjerct has a row, to fit the sklearn convention
     return fc
@@ -76,7 +77,7 @@ def load_regressors(path):
     return regressors_df  #subjects as row, regressors as colums (one of them being the subject id)
 
 
-def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,cognition,n_iter_search,random = True,Feature_selection = True):
+def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,cognition,n_iter_search,random = True,Feature_selection = True,manual_folds = False,fold_list = None,n_test = None,n_train = None):
     ##input X, Y, amount of permutations done on the cv, k: amont of inner loops ot find optimal alpha, train_size: the proption of training dataset, n_cog: the amount of behavioural vairables tested, model:regression type, alhaps_n; the range of alphas to be searched, n_feat: the amount of features
 
     
@@ -92,9 +93,13 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
     #optimised alpha (hyperparameter)
     opt_alpha = np.zeros([perm,n_cog])
     #predictions made by the model
-    preds = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
-    #true test values for cognition
-    cogtest = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
+    if manual_folds:
+        preds = np.zeros([perm,n_cog,n_test])
+        cogtest = np.zeros([perm,n_cog,n_test])
+    else:    
+        preds = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
+        #true test values for cognition
+        cogtest = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
     #feature importance extracted from the model
     featimp = np.zeros([perm,n_feat,n_cog])
 
@@ -108,7 +113,15 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
         #print permutation # you're on
         print('Permutation %d' %(p+1))
         #split data into train and test sets
-        x_train, x_test, cog_train, cog_test = train_test_split(X, Y, test_size=1-train_size, 
+        if manual_folds:
+            start = p * (n_train + n_test)
+            x_train = X[(fold_list.values.flatten()).astype(int)[start : start + n_train]]
+            x_test = X[(fold_list.values.flatten()).astype(int)[start + n_train:start + n_test + n_train]]
+            
+            cog_train = Y[(fold_list.values.flatten()).astype(int)[start : start + n_train]]
+            cog_test = Y[(fold_list.values.flatten()).astype(int)[start + n_train:start + n_test + n_train]]
+        else:    
+            x_train, x_test, cog_train, cog_test = train_test_split(X, Y, test_size=1-train_size, 
                                                                 shuffle=True, random_state=p)
         #print(cog_train)
 
