@@ -26,7 +26,7 @@ n_test = 200
 
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold
 
-cluster = True
+cluster = False
 if cluster:
     path = '/home/sheczko/ptmp/data/' #global path for cluster
 else:
