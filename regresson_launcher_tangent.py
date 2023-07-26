@@ -90,7 +90,7 @@ for perm_ixd in range(perm):
 
 #print(data_paths[:4])     
 # 
-for n_feat in np.array([500,1000]):   
+for n_feat in np.array([2250,1000]):   
 
     for data_path_i, data_path in enumerate(csv_paths): ##loop over atlases
             

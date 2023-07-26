@@ -42,7 +42,7 @@ Feature_selection = True ##set the whether to use the feature selection trick ba
 csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_gabys/*.csv')
 print(csv_paths)
 
-folds_gaby = pd.read_csv(path + f'/manual_folds/folds_{n_train}_{n_test}_200.txt')
+folds_gaby = pd.read_csv(path + f'/manual_folds/folds_{n_train}_{n_test}.txt')
 folds_gaby = folds_gaby[~folds_gaby['#----------------------------------------'].str.contains('------------------------------------')]
 folds_gaby2 = folds_gaby[~folds_gaby['#----------------------------------------'].str.contains('set')]
 
