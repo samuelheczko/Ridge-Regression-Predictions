@@ -142,9 +142,5 @@ for n_feat in np.array([2250]):
 
         result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
 
-        if Feature_selection:
-            result_df.to_csv(path + f'results/ridge_regression/tangent/gaby_results/ridge_results_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_{n_train}.csv')
-            preds_real_df.to_csv(path + f'results/ridge_regression/tangent/gaby_results/ridge_preds_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_{n_train}.csv')
-        else:
-            result_df.to_csv(path + f'results/ridge_regression/tangent/gaby_results/ridge_results_no_FS_{CT}_{current_atlas}_fold_size_{n_train}.csv')
-            preds_real_df.to_csv(path + f'results/ridge_regression/tangent/gaby_results/ridge_preds_no_FS_{CT}_{current_atlas}_fold_size_{n_train}.csv')
+        result_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_results_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_{n_train}.csv')
+        preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_preds_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_{n_train}.csv')
