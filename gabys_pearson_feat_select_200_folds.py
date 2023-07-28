@@ -36,7 +36,7 @@ CT = 'pearson' #set the correlation type
 
 
 
-Feature_selection = False ##set the whether to use the feature selection trick based on the education scores
+Feature_selection = True ##set the whether to use the feature selection trick based on the education scores
 
 
 csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_gabys/*.csv')
