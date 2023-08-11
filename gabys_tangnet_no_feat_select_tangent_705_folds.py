@@ -83,7 +83,7 @@ Y = cog_metric
  #set hyperparameter grid space you want to search through for the model
 #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
 alphas = loguniform(10, 10e4)
-n_iter = 100
+n_iter = 50
 
 
 
@@ -121,7 +121,6 @@ for n_feat in np.array([2250]):
         #set the number of features 
         if Feature_selection:
             n_feat = n_feat
-            n_feat = 'non_negative'
         else:
             n_feat = X.shape[1]
 
