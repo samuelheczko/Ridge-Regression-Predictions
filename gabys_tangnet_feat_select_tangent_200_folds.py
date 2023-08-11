@@ -126,8 +126,9 @@ for n_feat in np.array([2250]):
             n_feat = X.shape[1]
 
 
-        r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,
+        r2, preds, var, corr, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,
         cognition = cognition, n_iter_search=n_iter,Feature_selection = Feature_selection,manual_folds = True,fold_list = folds_gaby2,n_test = n_test,n_train = n_train)
+
         
         ##save data:
 

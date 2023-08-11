@@ -83,7 +83,7 @@ Y = cog_metric
  #set hyperparameter grid space you want to search through for the model
 #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
 alphas = loguniform(10, 10e4)
-n_iter = 50
+n_iter = 100
 
 
 
@@ -121,13 +121,14 @@ for n_feat in np.array([2250]):
         #set the number of features 
         if Feature_selection:
             n_feat = n_feat
+            n_feat = 'non_negative'
         else:
             n_feat = X.shape[1]
 
 
-        r2, preds, var, corr, featimp, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,
+        r2, preds, var, corr, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,
         cognition = cognition, n_iter_search=n_iter,Feature_selection = Feature_selection,manual_folds = True,fold_list = folds_gaby2,n_test = n_test,n_train = n_train)
-        
+    
         ##save data:
 
         df_preds = pd.DataFrame(preds.reshape(perm * n_cog,n_pred).T,columns = column_names_pred) ## we flatten the permutation axis 
