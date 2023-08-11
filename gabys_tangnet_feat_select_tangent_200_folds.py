@@ -120,8 +120,8 @@ for n_feat in np.array([2250]):
         X[X<0] = 0 #filter the negative values from the correlations
         #set the number of features 
         if Feature_selection:
-            n_feat = n_feat
-            #n_feat = 'non_negative'
+            #n_feat = n_feat
+            n_feat = 'non_negative'
         else:
             n_feat = X.shape[1]
 
