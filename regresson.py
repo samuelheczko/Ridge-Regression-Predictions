@@ -239,8 +239,8 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
 
             #compute correlation between true and predicted
             corr[p,cog] = np.corrcoef(y_test, preds[p,cog,:])[1,0]
-            print (var)
-            print (opt_alpha)
+            #print (var)
+            #print (opt_alpha)
 
 
             #extract feature importance
