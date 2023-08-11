@@ -246,7 +246,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             #extract feature importance
             #featimp[p,:,cog] = model.coef_
         
-    return r2, preds, var, corr, cogtest,opt_alpha, y_test.shape[0],#featimp
+    return r2, preds, var, corr, cogtest,opt_alpha, y_test.shape[0]#featimp
 
 
 
