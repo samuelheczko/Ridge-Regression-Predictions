@@ -100,8 +100,9 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
         preds = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
         #true test values for cognition
         cogtest = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
+
     #feature importance extracted from the model
-    featimp = np.zeros([perm,n_feat,n_cog])
+    #featimp = np.zeros([perm,n_feat,n_cog])
 
     #set the param grid be to the hyperparamters you want to search through
     #paramGrid ={'regularizer': alphas}
@@ -132,15 +133,19 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
 
             w_cog = r_regression(x_train,cog_train[:,0]) ## choose cog_train[0] for iq, [-1] for edu
             w_prod = w_cog * w_edu
-            w_prod[w_prod < 0] = 0
-            w_prod_norm = (w_prod - np.min(w_prod))/(np.max(w_prod)-np.min(w_prod))
+            w_prod[w_prod <= 0] = 0
+            #w_prod_norm = (w_prod - np.min(w_prod))/(np.max(w_prod)-np.min(w_prod))
             #w_prod_norm[w_prod_norm > 0].shape
-            h_idx = np.argpartition(w_prod_norm,-n_feat)[-n_feat:]
+
+            #h_idx = np.argpartition(w_prod_norm,-n_feat)[-n_feat:]
+            not_zero = np.nonzero(w_prod)[0]
+            print(f'not_zero {not_zero}')
 
 
-            x_train = x_train[:,h_idx] ##Select the highest features
-            x_test = x_test[:,h_idx]
-            print('feautres selected')
+            x_train = x_train[:,not_zero] ##Select the highest features
+            x_test = x_test[:,not_zero]
+            print('features selected')
+            print(f'x_train_shape {x_train.shape}')
 
         
         #iterate through the cognitive metrics you want to predict
@@ -235,11 +240,13 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             #compute correlation between true and predicted
             corr[p,cog] = np.corrcoef(y_test, preds[p,cog,:])[1,0]
             print (var)
+            print (opt_alpha)
+
 
             #extract feature importance
-            featimp[p,:,cog] = model.coef_
+            #featimp[p,:,cog] = model.coef_
         
-    return r2, preds, var, corr, featimp, cogtest,opt_alpha, y_test.shape[0]
+    return r2, preds, var, corr, cogtest,opt_alpha, y_test.shape[0],#featimp
 
 
 
