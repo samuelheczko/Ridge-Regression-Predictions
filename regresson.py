@@ -132,18 +132,21 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             w_edu = r_regression(x_test,cog_test[:,-1])
 
             w_cog = r_regression(x_train,cog_train[:,0]) ## choose cog_train[0] for iq, [-1] for edu
+            
             w_prod = w_cog * w_edu
             w_prod[w_prod <= 0] = 0
-            #w_prod_norm = (w_prod - np.min(w_prod))/(np.max(w_prod)-np.min(w_prod))
+            w_prod_norm = (w_prod - np.min(w_prod))/(np.max(w_prod)-np.min(w_prod))
+
             #w_prod_norm[w_prod_norm > 0].shape
+            n_feat_new = int(len(w_cog)/2)
+            print (f'feature amount: {n_feat_new}')
+            h_idx = np.argpartition(w_prod_norm,-n_feat_new)[-n_feat_new:]
+            #not_zero = np.nonzero(w_prod)[0]
+            #print(f'not_zero {not_zero}')
 
-            #h_idx = np.argpartition(w_prod_norm,-n_feat)[-n_feat:]
-            not_zero = np.nonzero(w_prod)[0]
-            print(f'not_zero {not_zero}')
 
-
-            x_train = x_train[:,not_zero] ##Select the highest features
-            x_test = x_test[:,not_zero]
+            x_train = x_train[:,h_idx] ##Select the highest features
+            x_test = x_test[:,h_idx]
             print('features selected')
             print(f'x_train_shape {x_train.shape}')
 
