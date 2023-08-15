@@ -17,7 +17,7 @@ from nilearn.maskers import MultiNiftiMapsMasker
 #path = '/kyb/agks/sheczko/Downloads/MastersThesis/code/data/' ##change this for the cluster version
 
 
-def calculate_time_series(atlas_path,imgs_paths,standardise = True,map_atlas = True):
+def calculate_time_series(atlas_path,imgs_paths,standardise = True,map_atlas = False):
     ##input: the atlas, images (paths), outputs: time series for each subject of each brain region (standardised)
     ##pass the chosen atlas to the multi masker that masks each brain region for each participant and extracts the time series
     if map_atlas:
@@ -25,7 +25,7 @@ def calculate_time_series(atlas_path,imgs_paths,standardise = True,map_atlas = T
     else:
         masker = MultiNiftiLabelsMasker(labels_img = atlas_path, standardize = standardise, memory='nilearn_cache', n_jobs = -1)
     ##extract the time series from the data
-    time_series = masker.fit_transform(imgs_paths)
+    time_series = masker.fit_transform(imgs_paths)[:]
     return time_series
 
 def connectome(time_series,correlation_measure = 'correlation'):
