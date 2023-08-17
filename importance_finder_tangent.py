@@ -44,7 +44,7 @@ column_names_importance = []
 ##load up regresors
 regressors_df =  regresson.load_regressors(path + 'func_images/AOMIC/regressors/*.txt')
 ##choose the target variables, take as np arrays
-print(regressors_df)
+
 GCA = regressors_df.regressor_iq.values
 bmi = regressors_df.regressor_bmi.values
 edu = regressors_df.regressor_edu.values
