@@ -6,7 +6,7 @@ import glob
 
 
 ##defime global parameters
-cluster = True
+cluster = False
 if cluster:
     path = '/home/sheczko/ptmp/data/' #Cluster
 else:
@@ -76,10 +76,9 @@ for atlas_path in atlases: ##loop over atlases
 
     df_time_series.to_csv(path_or_buf = path + f'/results/time_series/time_series_n_sub-{len(time_series)}_atlas-{atlas_name}.csv') ##SAVE
 
-
     print(f'time series shape {time_series[0].shape}')
     correlation_matrices, _ =  connectome.connectome(time_series = time_series,correlation_measure=correlation_measure) #get the connectivity matrices
-
+    print(f'correlation matrices shape {correlation_matrices.shape}')
     df_ = connectome.save_connectomes_df(correlation_matrices,anatomical_label_presence = al_p, anatomic_labels = ana_labels, path_to_save = path + 'results/connectomes/', atlas_name = atlas_name, n_subjects = correlation_matrices.shape[0], correlation_measure = correlation_measure,subject_ixds = subjects_idxs)
     
 

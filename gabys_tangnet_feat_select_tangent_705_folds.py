@@ -20,12 +20,15 @@ from sklearn.linear_model import Ridge
 
 #from snapml import LinearRegression
 from sklearn.utils.fixes import loguniform
+from scipy.stats import uniform
 
 
+n_train = 705
+n_test = 176
 
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold
 
-cluster = True
+cluster = False
 if cluster:
     path = '/home/sheczko/ptmp/data/' #global path for cluster
 else:
@@ -33,13 +36,15 @@ else:
 
 CT = 'tangent' #set the correlation type
 
+
+
 Feature_selection = True ##set the whether to use the feature selection trick based on the education scores
 
 
 csv_paths  = glob.glob(path + f'/results/connectomes/{CT}_gabys/*.csv')
 print(csv_paths)
 
-folds_gaby = pd.read_csv(path + '/manual_folds/folds_705_176.txt')
+folds_gaby = pd.read_csv(path + f'/manual_folds/folds_{n_train}_{n_test}.txt')
 folds_gaby = folds_gaby[~folds_gaby['#----------------------------------------'].str.contains('------------------------------------')]
 folds_gaby2 = folds_gaby[~folds_gaby['#----------------------------------------'].str.contains('set')]
 
@@ -79,9 +84,8 @@ Y = cog_metric
 
  #set hyperparameter grid space you want to search through for the model
 #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
-alphas = loguniform(10, 10e4)
-n_iter = 100
-
+alphas = uniform(10, 10e3)
+n_iter = 300
 
 
 column_names_pred = []
@@ -118,13 +122,14 @@ for n_feat in np.array([2250]):
         #set the number of features 
         if Feature_selection:
             #n_feat = n_feat
-            n_feat = 'fifty_percent'
+            n_feat = n_feat
         else:
             n_feat = X.shape[1]
 
+        print(n_feat)
+        r2,r2_2,r2_edu, preds, var, corr_iq, featimp, cogtest,opt_alphas,n_pred, corr_edu,corr_edu_AA = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,
+        cognition = cognition, n_iter_search=n_iter,Feature_selection = Feature_selection,manual_folds = True,fold_list = folds_gaby2,n_test = n_test,n_train = n_train,z_score = True)
 
-        r2, preds, var, corr, cogtest,opt_alphas,n_pred = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,
-        cognition = cognition, n_iter_search=n_iter,Feature_selection = Feature_selection,manual_folds = True,fold_list = folds_gaby2,n_test = 176,n_train = 705)
         
         ##save data:
 
@@ -134,11 +139,18 @@ for n_feat in np.array([2250]):
 
 
         result_r2 = pd.DataFrame(columns = [cog + '_r2' for cog in cognition], data = r2)
+        result_r2_2 = pd.DataFrame(columns = [cog + '_r2_after_FA' for cog in cognition], data = r2_2)
+        result_r2_edu = pd.DataFrame(columns = [cog + 'edu_r2' for cog in cognition], data = r2_2)
+
+
         result_var = pd.DataFrame(columns = [cog + '_var' for cog in cognition], data = var)
         opt_alphas_df = pd.DataFrame(columns = [cog + '_opt_alphas' for cog in cognition], data =  opt_alphas)
-        corr_df = pd.DataFrame(columns = [cog + '_corr' for cog in cognition], data =  corr)
+        corr_iq_df = pd.DataFrame(columns = [cog + 'iq_corr' for cog in cognition], data =  corr_iq)
+        corr_edu_df = pd.DataFrame(columns = [cog + 'edu_corr' for cog in cognition], data =  corr_edu)
+        corr_edu_df_afterAA = pd.DataFrame(columns = [cog + 'edu_corr_after_FA' for cog in cognition], data =  corr_edu_AA)
 
-        result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_df],axis = 1)
 
-        result_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_results_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_705.csv')
-        preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_preds_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_705.csv')
+        result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_iq_df,corr_edu_df,result_r2_edu,corr_edu_df_afterAA,result_r2_2],axis = 1)
+
+        result_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_results_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_{n_train}.csv')
+        preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_preds_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_{n_train}.csv')

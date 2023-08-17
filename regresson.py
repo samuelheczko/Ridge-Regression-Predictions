@@ -28,6 +28,7 @@ from scipy.stats import uniform
 
 
 from sklearn.feature_selection import r_regression
+from sklearn.linear_model import LinearRegression
 
 
 
@@ -36,7 +37,6 @@ from sklearn.feature_selection import r_regression
 #from sklearn.linear_model import Lasso
 #from sklearn.svm import SVR
 #from sklearn.pipeline import make_pipeline, Pipeline
-from sklearn.preprocessing import StandardScaler
 #from sklearn.linear_model import ElasticNet
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, KFold, RandomizedSearchCV
 #from sklearn.preprocessing import StandardScaler
@@ -76,8 +76,22 @@ def load_regressors(path):
 
     return regressors_df  #subjects as row, regressors as colums (one of them being the subject id)
 
+def load_regressors_HCP(path):
+    #get the cognitive traits in correct format
+    regressors_path = glob.glob(path) ##how to extract the target variables
+    #print(regressors_path)
+    regressors_df = pd.DataFrame()
+    for regressors in regressors_path:
+        name_r = regressors.split('/')[-1].split('.')[0]
+        #print(name_r)
+        regressors_df[f'{name_r}'] = pd.read_csv(regressors,header=None) ##in this format each subject has a row, to test the model we can try to predict the subject id (presumably random)
 
-def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,cognition,n_iter_search,random = True,Feature_selection = True,manual_folds = False,fold_list = None,n_test = None,n_train = None):
+
+
+    return regressors_df  #subjects as row, regressors as colums (one of them being the subject id)
+
+
+def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,cognition,n_iter_search,random = True,Feature_selection = True,manual_folds = False,fold_list = None,n_test = None,n_train = None,prop = False,z_score = True):
     ##input X, Y, amount of permutations done on the cv, k: amont of inner loops ot find optimal alpha, train_size: the proption of training dataset, n_cog: the amount of behavioural vairables tested, model:regression type, alhaps_n; the range of alphas to be searched, n_feat: the amount of features
 
     
@@ -86,29 +100,46 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
     #create arrays to store variables
     #r^2 - coefficient of determination
     r2 = np.zeros([perm,n_cog])
+    r2_2 = np.zeros([perm,n_cog])
+    r2_edu = np.zeros([perm,n_cog])
     #explained variance
     var = np.zeros([perm,n_cog])
     #correlation between true and predicted (aka prediction accuracy)
-    corr = np.zeros([perm,n_cog])
+    corr_iq = np.zeros([perm,n_cog])
+    corr_edu = np.zeros([perm,n_cog])
+    corr_edu_AA = np.zeros([perm,n_cog])
+
     #optimised alpha (hyperparameter)
     opt_alpha = np.zeros([perm,n_cog])
     #predictions made by the model
     if manual_folds:
         preds = np.zeros([perm,n_cog,n_test])
+        preds2 = np.zeros([perm,n_cog,n_test])
+        preds3 = np.zeros([perm,n_cog,n_test])
         cogtest = np.zeros([perm,n_cog,n_test])
     else:    
         preds = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
+        preds2 = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
+        preds3 = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
+
+
         #true test values for cognition
         cogtest = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
 
     #feature importance extracted from the model
-    #featimp = np.zeros([perm,n_feat,n_cog])
+    featimp = np.zeros([perm,n_feat,n_cog])
+
 
     #set the param grid be to the hyperparamters you want to search through
     #paramGrid ={'regularizer': alphas}
     paramGrid ={'alpha': alphas}
     n_iter_search = n_iter_search
-
+    if z_score:
+        scaler = StandardScaler()
+        #X = X.T
+        scaler.fit(X)
+        X = scaler.transform(X)
+        #X = X.T
     #iterate through permutations
     for p in range(perm):
         #print permutation # you're on
@@ -138,7 +169,11 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             w_prod_norm = (w_prod - np.min(w_prod))/(np.max(w_prod)-np.min(w_prod))
 
             #w_prod_norm[w_prod_norm > 0].shape
-            n_feat_new = int(len(w_cog)/2)
+            if prop:
+                n_feat_new = int(len(w_cog)/2)
+            else:
+                n_feat_new = n_feat
+            
             print (f'feature amount: {n_feat_new}')
             h_idx = np.argpartition(w_prod_norm,-n_feat_new)[-n_feat_new:]
             #not_zero = np.nonzero(w_prod)[0]
@@ -160,8 +195,10 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             
             #set y values for train and test based on     
             y_train = cog_train[:,cog]
+            y_mean = np.mean(y_train)
+            y_train -= y_mean
             y_test = cog_test[:,cog]
-            
+            y_test -= y_mean
             #store all the y_test values in a separate variable that can be accessed later if needed
             cogtest[p,cog,:] = y_test
 
@@ -212,7 +249,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
                                             scoring='r2', verbose=1)
 
                 #record nested CV scores
-                nested_scores.append(np.median(nested_score))
+                nested_scores.append(np.mean(nested_score))
 
                 #print how many cv loops are complete
                 print("%d/%d Complete" % (i+1,cv_loops))
@@ -227,29 +264,49 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
 
             #fit model using optimised hyperparameter
             #model = LinearRegression(fit_intercept = True, regularizer = opt_alpha[p,cog],use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
-            model = Ridge(fit_intercept = True, alpha = opt_alpha[p,cog], max_iter=1000000)
+            model = Ridge(fit_intercept = False, alpha = opt_alpha[p,cog], max_iter=1000000)
+
+            model2 = LinearRegression(fit_intercept = False)
 
             model.fit(x_train, y_train)
-            
+            edu_train = np.array(cog_train[:,-1]).reshape(-1, 1)
+            edu_test = np.array(cog_test[:,-1]).reshape(-1, 1)
+
+            print(edu_train.shape)
+            model2.fit(edu_train,y_train)
+
             #compute r^2 (coefficient of determination) 
             r2[p,cog]=model.score(x_test,y_test)
 
             #generate predictions from model
             preds[p,cog,:] = model.predict(x_test).ravel()
-            
+            preds2[p,cog,:] = model2.predict(edu_test).ravel()#predict using educational info only, as one feture linear regression
+
+            preds3_t = 0.3*preds2[p,cog,:] + 0.7*preds[p,cog,:] #calcuate the average with predicts from both iq and education -- this should make the alhorigm more robust aginst outliners
+
+            preds3[p,cog,:] = preds3_t
             #compute explained variance 
             var[p,cog] = explained_variance_score(y_test, preds[p,cog,:])
 
             #compute correlation between true and predicted
-            corr[p,cog] = np.corrcoef(y_test, preds[p,cog,:])[1,0]
+            corr_iq[p,cog] = np.corrcoef(y_test, preds[p,cog,:])[1,0]
+            corr_edu[p,cog] = np.corrcoef(cog_test[:,-1], preds[p,cog,:])[1,0]
+            corr_edu_AA[p,cog] = np.corrcoef(cog_test[:,-1], preds3[p,cog,:])[1,0]
             #print (var)
-            #print (opt_alpha)
 
-
+            r2_2[p,cog] = r2_score(y_test, preds3_t)
+            print (f'opt alpha {opt_alpha[p,cog]}')
+            print(f'r2 pred 1: {r2_score(y_test, preds[p,cog,:])}')
+            print(f'r2 pred 2: {r2_score(y_test, preds2[p,cog,:])}')
+            print(f'r2 pred 3: {r2_2[p,cog]}')
+            print(f'corr with edu {corr_edu[p,cog]}')
+            print(f'corr with edu after average {np.corrcoef(cog_test[:,-1], preds3[p,cog,:])[1,0]}')
             #extract feature importance
-            #featimp[p,:,cog] = model.coef_
-        
-    return r2, preds, var, corr, cogtest,opt_alpha, y_test.shape[0]#featimp
+            featimp[p,:,cog] = model.coef_
+            #print(r2)
+            r2_edu[p,cog] = r2_score(cog_test[:,-1], preds[p,cog,:])
+         
+    return r2,r2_2,r2_edu, preds, var, corr_iq,featimp, cogtest,opt_alpha, y_test.shape[0],corr_edu,corr_edu_AA
 
 
 
