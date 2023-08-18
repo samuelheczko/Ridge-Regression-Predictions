@@ -84,8 +84,8 @@ Y = cog_metric
 
  #set hyperparameter grid space you want to search through for the model
 #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
-alphas = uniform(10, 10e3)
-n_iter = 300
+alphas = uniform(0, 10e3)
+n_iter = 1000
 
 
 column_names_pred = []
@@ -145,12 +145,12 @@ for n_feat in np.array([2250]):
 
         result_var = pd.DataFrame(columns = [cog + '_var' for cog in cognition], data = var)
         opt_alphas_df = pd.DataFrame(columns = [cog + '_opt_alphas' for cog in cognition], data =  opt_alphas)
-        corr_iq_df = pd.DataFrame(columns = [cog + 'iq_corr' for cog in cognition], data =  corr_iq)
-        corr_edu_df = pd.DataFrame(columns = [cog + 'edu_corr' for cog in cognition], data =  corr_edu)
-        corr_edu_df_afterAA = pd.DataFrame(columns = [cog + 'edu_corr_after_FA' for cog in cognition], data =  corr_edu_AA)
+        corr_iq_df = pd.DataFrame(columns = [cog + '_iq_corr' for cog in cognition], data =  corr_iq)
+        corr_edu_df = pd.DataFrame(columns = [cog + '_edu_corr' for cog in cognition], data =  corr_edu)
+        corr_edu_df_afterAA = pd.DataFrame(columns = [cog + '_edu_corr_after_FA' for cog in cognition], data =  corr_edu_AA)
 
 
         result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_iq_df,corr_edu_df,result_r2_edu,corr_edu_df_afterAA,result_r2_2],axis = 1)
 
-        result_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_results_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_{n_train}.csv')
-        preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_preds_FS_n_feat_{n_feat}_both_{CT}_{current_atlas}_fold_size_{n_train}.csv')
+        result_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_results_FS_n_feat_{n_feat}_both_new_cv_{CT}_{current_atlas}_fold_size_{n_train}.csv')
+        preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_preds_FS_n_feat_{n_feat}_both_new_cv_{CT}_{current_atlas}_fold_size_{n_train}.csv')

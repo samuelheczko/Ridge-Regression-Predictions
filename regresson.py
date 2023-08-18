@@ -133,13 +133,15 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
     #set the param grid be to the hyperparamters you want to search through
     #paramGrid ={'regularizer': alphas}
     paramGrid ={'alpha': alphas}
-    n_iter_search = n_iter_search
+    alphas_original = alphas
+    n_iter_search_original = n_iter_search
+
     if z_score:
         scaler = StandardScaler()
-        #X = X.T
+        X = X.T
         scaler.fit(X)
         X = scaler.transform(X)
-        #X = X.T
+        X = X.T
     #iterate through permutations
     for p in range(perm):
         #print permutation # you're on
@@ -207,12 +209,19 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             nested_scores = []
             best_params = []
             
+            
 
             #optimise regression model using nested CV
             print('Training Models')
             
             #go through the loops of the cross validation
             for i in range(cv_loops):
+                if i == 0:
+                    alphas = alphas_original
+                    n_iter_search = n_iter_search_original
+                else:
+                    alphas = uniform(np.array(best_params)[-1] - 500 , np.array(best_params)[-1] + 500)
+                    n_iter_search = 100
 
 
                 #set parameters for inner and outer loops for CV
@@ -259,7 +268,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
 
 
             #save optimised alpha values
-            opt_alpha[p,cog] = np.mean(best_params)
+            opt_alpha[p,cog] = np.mean(np.array(best_params)[1:])
 
 
             #fit model using optimised hyperparameter
@@ -282,7 +291,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             preds[p,cog,:] = model.predict(x_test).ravel()
             preds2[p,cog,:] = model2.predict(edu_test).ravel()#predict using educational info only, as one feture linear regression
 
-            preds3_t = 0.3*preds2[p,cog,:] + 0.7*preds[p,cog,:] #calcuate the average with predicts from both iq and education -- this should make the alhorigm more robust aginst outliners
+            preds3_t = 0.5*preds2[p,cog,:] + 0.5*preds[p,cog,:] #calcuate the average with predicts from both iq and education -- this should make the alhorigm more robust aginst outliners
 
             preds3[p,cog,:] = preds3_t
             #compute explained variance 
