@@ -20,6 +20,8 @@ from sklearn.linear_model import Ridge
 
 #from snapml import LinearRegression
 from sklearn.utils.fixes import loguniform
+from scipy.stats import uniform
+
 
 n_train = 200
 n_test = 200
