@@ -91,7 +91,7 @@ def load_regressors_HCP(path):
     return regressors_df  #subjects as row, regressors as colums (one of them being the subject id)
 
 
-def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,cognition,n_iter_search,random = True,Feature_selection = True,manual_folds = False,fold_list = None,n_test = None,n_train = None,prop = False,z_score = True):
+def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,cognition,n_iter_search,random = True,Feature_selection = True,manual_folds = False,fold_list = None,n_test = None,n_train = None,prop = False,z_score = False):
     ##input X, Y, amount of permutations done on the cv, k: amont of inner loops ot find optimal alpha, train_size: the proption of training dataset, n_cog: the amount of behavioural vairables tested, model:regression type, alhaps_n; the range of alphas to be searched, n_feat: the amount of features
 
     
@@ -216,12 +216,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             
             #go through the loops of the cross validation
             for i in range(cv_loops):
-                if i == 0:
-                    alphas = alphas_original
-                    n_iter_search = n_iter_search_original
-                else:
-                    alphas = uniform(np.array(best_params)[-1] - 500 , np.array(best_params)[-1] + 500)
-                    n_iter_search = 100
+                
 
 
                 #set parameters for inner and outer loops for CV
@@ -235,7 +230,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
                 if random:
                     #define regressor with random-search CV for inner loop
                     gridSearch = RandomizedSearchCV(estimator=regr, param_distributions = paramGrid, n_jobs=-1, n_iter=n_iter_search,
-                                            verbose=0, cv=inner_cv, scoring='r2')
+                                            verbose=0, cv=inner_cv, scoring='r2',random_state=i)
 
                     #fit regressor
                     gridSearch.fit(x_train, y_train)
@@ -252,6 +247,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
 
                 #save parameters corresponding to the best score
                 best_params.append(list(gridSearch.best_params_.values()))
+                print(gridSearch.best_score_)
 
                 #call cross_val_score for outer loop
                 nested_score = cross_val_score(gridSearch, X=x_train, y=y_train, cv=outer_cv, 
@@ -268,7 +264,8 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
 
 
             #save optimised alpha values
-            opt_alpha[p,cog] = np.mean(np.array(best_params)[1:])
+            opt_alpha[p,cog] = np.mean(np.array(best_params))
+            print(np.array(best_params)[:])
 
 
             #fit model using optimised hyperparameter
@@ -276,6 +273,9 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             model = Ridge(fit_intercept = False, alpha = opt_alpha[p,cog], max_iter=1000000)
 
             model2 = LinearRegression(fit_intercept = False)
+            
+            model3 = LinearRegression(fit_intercept = False)
+
 
             model.fit(x_train, y_train)
             edu_train = np.array(cog_train[:,-1]).reshape(-1, 1)
@@ -291,15 +291,28 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             preds[p,cog,:] = model.predict(x_test).ravel()
             preds2[p,cog,:] = model2.predict(edu_test).ravel()#predict using educational info only, as one feture linear regression
 
+
             preds3_t = 0.5*preds2[p,cog,:] + 0.5*preds[p,cog,:] #calcuate the average with predicts from both iq and education -- this should make the alhorigm more robust aginst outliners
 
             preds3[p,cog,:] = preds3_t
             #compute explained variance 
             var[p,cog] = explained_variance_score(y_test, preds[p,cog,:])
 
+            model3.fit(edu_test,preds[p,cog,:])
+            resid = preds[p,cog,:] - model3.predict(edu_test)
+            #print(resid)
+            
+
+            #print(r2_score(preds[p,cog,:],edu_test))
+            #print(np.corrcoef(y_test, reg_out)[1,0])
+
+
             #compute correlation between true and predicted
             corr_iq[p,cog] = np.corrcoef(y_test, preds[p,cog,:])[1,0]
             corr_edu[p,cog] = np.corrcoef(cog_test[:,-1], preds[p,cog,:])[1,0]
+            corr_edu_resid = np.corrcoef(cog_test[:,-1], resid)[1,0]
+            #plt.scatter(cog_test[:,-1],preds[p,cog,:])
+            #plt.show()
             corr_edu_AA[p,cog] = np.corrcoef(cog_test[:,-1], preds3[p,cog,:])[1,0]
             #print (var)
 
@@ -310,6 +323,14 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             print(f'r2 pred 3: {r2_2[p,cog]}')
             print(f'corr with edu {corr_edu[p,cog]}')
             print(f'corr with edu after average {np.corrcoef(cog_test[:,-1], preds3[p,cog,:])[1,0]}')
+            print(f'corr with iq {corr_iq[p,cog]}')
+            print(f'corr with iq after regressing {np.corrcoef(y_test, resid)[1,0]}')
+            print(f'corr in population {np.corrcoef(cog_test[:,-1],y_test)[1,0]}')
+
+            #plt.scatter(cog_test[:,-1],y_test)
+            #plt.show()
+            print(f'corr in after resid edu {corr_edu_resid}')
+    
             #extract feature importance
             featimp[p,:,cog] = model.coef_
             #print(r2)

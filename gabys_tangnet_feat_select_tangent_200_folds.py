@@ -19,8 +19,9 @@ from sklearn.metrics import explained_variance_score, r2_score
 from sklearn.linear_model import Ridge
 
 #from snapml import LinearRegression
-from sklearn.utils.fixes import loguniform
+#from sklearn.utils.fixes import loguniform
 from scipy.stats import uniform
+from scipy.stats import loguniform
 
 
 n_train = 200
@@ -71,22 +72,21 @@ perm = 100
 #set the number of cross-validation loops you want to perform
 cv_loops = 5
 #set the number of folds you want in the inner and outer folds of the nested cross-validation
-k = 3
+k = 5
 #set the proportion of data you want in your training set
 train_size = .8
 #set the number of variable you want to predict to be the number of variables stored in the cognition variablse
 n_cog = np.size(cognition)
 #set regression model type
-regr = Ridge(fit_intercept = True, max_iter=1000000)
+regr = Ridge(fit_intercept = False, max_iter=1000000)
 #regr = LinearRegression(fit_intercept = True, use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
 #set y to be the cognitive metrics you want to predict. They are the same for every atlas (each subject has behavioural score regradless of parcellation)
 Y = cog_metric
 
  #set hyperparameter grid space you want to search through for the model
 #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
-alphas = uniform(0, 10e3)
-n_iter = 1000
-
+alphas = loguniform(10, 10e3)
+n_iter = 200
 
 column_names_pred = []
 column_names_real = []    
@@ -128,7 +128,7 @@ for n_feat in np.array([2250]):
 
         print(n_feat)
         r2,r2_2,r2_edu, preds, var, corr_iq, featimp, cogtest,opt_alphas,n_pred, corr_edu,corr_edu_AA = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = 0.8, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,
-        cognition = cognition, n_iter_search=n_iter,Feature_selection = Feature_selection,manual_folds = True,fold_list = folds_gaby2,n_test = n_test,n_train = n_train,z_score = True)
+        cognition = cognition, n_iter_search=n_iter,Feature_selection = Feature_selection,manual_folds = True,fold_list = folds_gaby2,n_test = n_test,n_train = n_train,z_score = False)
 
         
         ##save data:
@@ -140,7 +140,7 @@ for n_feat in np.array([2250]):
 
         result_r2 = pd.DataFrame(columns = [cog + '_r2' for cog in cognition], data = r2)
         result_r2_2 = pd.DataFrame(columns = [cog + '_r2_after_FA' for cog in cognition], data = r2_2)
-        result_r2_edu = pd.DataFrame(columns = [cog + 'edu_r2' for cog in cognition], data = r2_2)
+        result_r2_edu = pd.DataFrame(columns = [cog + 'edu_r2' for cog in cognition], data = r2_edu)
 
 
         result_var = pd.DataFrame(columns = [cog + '_var' for cog in cognition], data = var)
@@ -152,5 +152,5 @@ for n_feat in np.array([2250]):
 
         result_df = pd.concat([result_var,result_r2,opt_alphas_df,corr_iq_df,corr_edu_df,result_r2_edu,corr_edu_df_afterAA,result_r2_2],axis = 1)
 
-        result_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_results_FS_n_feat_{n_feat}_both_new_cv_{CT}_{current_atlas}_fold_size_{n_train}.csv')
-        preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_preds_FS_n_feat_{n_feat}_both_new_cv_{CT}_{current_atlas}_fold_size_{n_train}.csv')
+        result_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_results_FS_n_feat_{n_feat}_both_no_z_{CT}_{current_atlas}_fold_size_{n_train}.csv')
+        preds_real_df.to_csv(path + f'results/ridge_regression/{CT}/gaby_results/ridge_preds_FS_n_feat_{n_feat}_both_no_z_{CT}_{current_atlas}_fold_size_{n_train}.csv')

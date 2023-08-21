@@ -19,8 +19,9 @@ from sklearn.metrics import explained_variance_score, r2_score
 from sklearn.linear_model import Ridge
 
 #from snapml import LinearRegression
-from sklearn.utils.fixes import loguniform
+#from sklearn.utils.fixes import loguniform
 from scipy.stats import uniform
+from scipy.stats import loguniform
 
 
 
@@ -74,8 +75,8 @@ Y = cog_metric
 
  #set hyperparameter grid space you want to search through for the model
 #alphas = np.linspace(max(n_feat*0.12 - 1000, 0.0001), n_feat*0.12 + 2000, num = 50, endpoint=True, dtype=None, axis=0) #set the range of alpahs being searhced based off the the amount of features
-alphas = uniform(10, 10e3)
-n_iter = 1000
+alphas = loguniform(10, 10e3)
+n_iter = 100
 
 
 
@@ -118,7 +119,7 @@ for n_feat in np.array([2250]):
 
 
         r2,r2_2,r2_edu, preds, var, corr_iq, featimp, cogtest,opt_alphas,n_pred, corr_edu,corr_edu_AA = regresson.regression(X = X, Y = Y, perm = perm, cv_loops = cv_loops, k = k, train_size = train_size, n_cog = n_cog, regr = regr, alphas = alphas,n_feat = n_feat,
-        cognition = cognition,manual_folds = False, n_iter_search=n_iter,Feature_selection = Feature_selection,z_score = True)
+        cognition = cognition,manual_folds = False, n_iter_search=n_iter,Feature_selection = Feature_selection,z_score = False)
         
         ##save data:
 
