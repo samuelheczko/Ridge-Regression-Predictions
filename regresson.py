@@ -45,8 +45,17 @@ from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_sc
 
 
 def load_data(path):
-    #INPUT: the path to the desired atlas
-    #OUTPUT: the subjects x features matrix of funtional connectivity
+
+    """
+    Load functional connectivity data from a CSV file.
+
+    Parameters:
+        path (str): Path to the CSV file containing functional connectivity data.
+
+    Returns:
+        fc (numpy.ndarray): Subjects x features matrix of functional connectivity.
+    """
+
     fc_panda = pd.read_csv(path) #load in the desired datafile
     sorted_df = fc_panda.sort_index(axis=1) ##sort for subjects in order
     #print(sorted_df.columns)
@@ -57,6 +66,17 @@ def load_data(path):
 
 
 def load_regressors(path):
+
+    """
+    Load cognitive trait data from CSV files.
+
+    Parameters:
+        path (str): Path to the directory containing cognitive trait CSV files.
+
+    Returns:
+        regressors_df (pandas.DataFrame): Subjects as rows, cognitive traits as columns.
+    """
+
     #get the cognitive traits in correct format
     regressors_path = glob.glob(path) ##how to extract the target variables
     #print(regressors_path)
@@ -94,20 +114,38 @@ def load_regressors_HCP(path):
 def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,cognition,n_iter_search,random = True,Feature_selection = True,manual_folds = False,fold_list = None,n_test = None,n_train = None,prop = False,z_score = False):
     ##input X, Y, amount of permutations done on the cv, k: amont of inner loops ot find optimal alpha, train_size: the proption of training dataset, n_cog: the amount of behavioural vairables tested, model:regression type, alhaps_n; the range of alphas to be searched, n_feat: the amount of features
 
+
+    #Perform regression analysis using various models and evaluate performance.
+
+    #Parameters:
+        ##input X, Y, amount of permutations done on the cv, k: amont of inner loops ot find optimal alpha
+        # train_size: the proption of training dataset, n_cog: the amount of behavioural vairables tested, model:regression type, alhaps_n; the range of alphas to be searched, n_feat: the amount of features
+
+    #Returns:
+        # Describe the returned values here
     
 
 
     #create arrays to store variables
-    #r^2 - coefficient of determination
-    r2 = np.zeros([perm,n_cog])
-    r2_2 = np.zeros([perm,n_cog])
-    r2_edu = np.zeros([perm,n_cog])
+    #r^2 - coefficient of determination -set up the arrays to hold all the statistical mesures
+    r2_iq_fMRI_preds = np.zeros([perm,n_cog])
+    r2_iq_avg_preds = np.zeros([perm,n_cog])
+    r2_iq_edu_preds = np.zeros([perm,n_cog])
+    r2_iq_resid_preds = np.zeros([perm,n_cog])
+    r2_preds_edu = np.zeros([perm,n_cog])
+    r2_preds_avg_edu = np.zeros([perm,n_cog])
+  
     #explained variance
     var = np.zeros([perm,n_cog])
     #correlation between true and predicted (aka prediction accuracy)
-    corr_iq = np.zeros([perm,n_cog])
-    corr_edu = np.zeros([perm,n_cog])
-    corr_edu_AA = np.zeros([perm,n_cog])
+    corr_iq_fMRI_preds = np.zeros([perm,n_cog])
+    corr_iq_edu_preds = np.zeros([perm,n_cog])
+    corr_iq_avg_preds = np.zeros([perm,n_cog])
+    corr_iq_resid_preds = np.zeros([perm,n_cog])
+    corr_preds_edu =  np.zeros([perm,n_cog])
+    corr_preds_avg_edu =  np.zeros([perm,n_cog])
+
+
 
     #optimised alpha (hyperparameter)
     opt_alpha = np.zeros([perm,n_cog])
@@ -116,12 +154,13 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
         preds = np.zeros([perm,n_cog,n_test])
         preds2 = np.zeros([perm,n_cog,n_test])
         preds3 = np.zeros([perm,n_cog,n_test])
+        preds_resid = np.zeros([perm,n_cog,n_test])
         cogtest = np.zeros([perm,n_cog,n_test])
     else:    
         preds = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
         preds2 = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
         preds3 = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
-
+        preds_resid = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
 
         #true test values for cognition
         cogtest = np.zeros([perm,n_cog,int(np.ceil(X.shape[0]*(1-train_size)))])
@@ -138,10 +177,10 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
 
     if z_score:
         scaler = StandardScaler()
-        X = X.T
+        #X = X.T
         scaler.fit(X)
         X = scaler.transform(X)
-        X = X.T
+        #X = X.T
     #iterate through permutations
     for p in range(perm):
         #print permutation # you're on
@@ -230,7 +269,7 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
                 if random:
                     #define regressor with random-search CV for inner loop
                     gridSearch = RandomizedSearchCV(estimator=regr, param_distributions = paramGrid, n_jobs=-1, n_iter=n_iter_search,
-                                            verbose=0, cv=inner_cv, scoring='r2',random_state=i)
+                                            verbose=0, cv=inner_cv, scoring='r2')
 
                     #fit regressor
                     gridSearch.fit(x_train, y_train)
@@ -268,75 +307,82 @@ def regression(X, Y, perm, cv_loops, k, train_size, n_cog, regr, alphas,n_feat,c
             print(np.array(best_params)[:])
 
 
-            #fit model using optimised hyperparameter
-            #model = LinearRegression(fit_intercept = True, regularizer = opt_alpha[p,cog],use_gpu=False, max_iter=1000000,dual=True,penalty='l2')
-            model = Ridge(fit_intercept = False, alpha = opt_alpha[p,cog], max_iter=1000000)
-
-            model2 = LinearRegression(fit_intercept = False)
-            
-            model3 = LinearRegression(fit_intercept = False)
-
-
-            model.fit(x_train, y_train)
+        #1. model - to fit the intelligence using connectome features - usest the hyperparamter discoverd in cross validation
+            model = Ridge(fit_intercept = True, alpha = opt_alpha[p,cog], max_iter=1000000)
+        #2. model - using only eduation
+            model2 = LinearRegression(fit_intercept = True)
+        #3/4. model - to track statistical relationshsips of predicitons and education    
+            model3 = LinearRegression(fit_intercept = True)
+            model4 = LinearRegression(fit_intercept = True)
+        #shape the education vecotrs to suit the models    
             edu_train = np.array(cog_train[:,-1]).reshape(-1, 1)
             edu_test = np.array(cog_test[:,-1]).reshape(-1, 1)
+        #fit the models
+            model.fit(x_train, y_train) #usingt the connecotme features
+ 
+            model2.fit(edu_train,y_train) #usingt the education as the only feature
+            
 
-            print(edu_train.shape)
-            model2.fit(edu_train,y_train)
-
-            #compute r^2 (coefficient of determination) 
-            r2[p,cog]=model.score(x_test,y_test)
-
-            #generate predictions from model
+            #generate predictions from models
             preds[p,cog,:] = model.predict(x_test).ravel()
             preds2[p,cog,:] = model2.predict(edu_test).ravel()#predict using educational info only, as one feture linear regression
+            preds3[p,cog,:] = 0.5*preds2[p,cog,:] + 0.5*preds[p,cog,:] #calcuate the average with predicts from both iq and education -- this should make the alhorigm more robust aginst outliner
 
+            #fit the analysis model using predicitons
+            model3.fit(edu_test,preds[p,cog,:]) #fit the model on the predicitons - predict our fMRI iq prediction from the education level only (gives a binary vector) - answeres the question : how much our predicitons are determied by 
+            model4.fit(edu_test,preds3[p,cog,:]) #fit the model on the predicitons - predict our fMRI iq prediction from the education level only (gives a binary vector) - answeres the question : how much our predicitons are determied by 
 
-            preds3_t = 0.5*preds2[p,cog,:] + 0.5*preds[p,cog,:] #calcuate the average with predicts from both iq and education -- this should make the alhorigm more robust aginst outliners
+            pred_pred = model3.predict(edu_test) #predit the predictions using the linear model
 
-            preds3[p,cog,:] = preds3_t
+        
+            preds_resid[p,cog,:]  = preds[p,cog,:] - pred_pred  #find residuals of the predicitons wrt the education
+
             #compute explained variance 
             var[p,cog] = explained_variance_score(y_test, preds[p,cog,:])
 
-            model3.fit(edu_test,preds[p,cog,:])
-            resid = preds[p,cog,:] - model3.predict(edu_test)
-            #print(resid)
-            
+           
+            #compute correlation between true and predicted - correlatuon is symmetric no need to think abt order
+            corr_iq_fMRI_preds[p,cog] = np.corrcoef(y_test, preds[p,cog,:])[1,0] ##main correlation - fMRI with IQ (with educaiton)
+            corr_iq_edu_preds[p,cog] = np.corrcoef(y_test, preds2[p,cog,:])[1,0]  ##secondary correlation - only using educaiton level
+            corr_iq_avg_preds[p,cog] = np.corrcoef(y_test, preds3[p,cog,:])[1,0] ##third correlation - simple average prediction
+            corr_iq_resid_preds[p,cog] = np.corrcoef(y_test, preds_resid[p,cog,:])[1,0] ##fourth correlation - residuals (information left after regressing out)
 
-            #print(r2_score(preds[p,cog,:],edu_test))
-            #print(np.corrcoef(y_test, reg_out)[1,0])
+            corr_preds_edu[p,cog] = np.corrcoef(cog_test[:,-1], preds[p,cog,:])[1,0]  ##correlation of our results with edu
+            corr_preds_avg_edu[p,cog] = np.corrcoef(cog_test[:,-1], preds3[p,cog,:])[1,0] 
 
-
-            #compute correlation between true and predicted
-            corr_iq[p,cog] = np.corrcoef(y_test, preds[p,cog,:])[1,0]
-            corr_edu[p,cog] = np.corrcoef(cog_test[:,-1], preds[p,cog,:])[1,0]
-            corr_edu_resid = np.corrcoef(cog_test[:,-1], resid)[1,0]
-            #plt.scatter(cog_test[:,-1],preds[p,cog,:])
+            #plt.scatter(cog_test[:,-1],preds[p,cog,:]) #plot if u want
             #plt.show()
-            corr_edu_AA[p,cog] = np.corrcoef(cog_test[:,-1], preds3[p,cog,:])[1,0]
             #print (var)
 
-            r2_2[p,cog] = r2_score(y_test, preds3_t)
-            print (f'opt alpha {opt_alpha[p,cog]}')
-            print(f'r2 pred 1: {r2_score(y_test, preds[p,cog,:])}')
-            print(f'r2 pred 2: {r2_score(y_test, preds2[p,cog,:])}')
-            print(f'r2 pred 3: {r2_2[p,cog]}')
-            print(f'corr with edu {corr_edu[p,cog]}')
-            print(f'corr with edu after average {np.corrcoef(cog_test[:,-1], preds3[p,cog,:])[1,0]}')
-            print(f'corr with iq {corr_iq[p,cog]}')
-            print(f'corr with iq after regressing {np.corrcoef(y_test, resid)[1,0]}')
-            print(f'corr in population {np.corrcoef(cog_test[:,-1],y_test)[1,0]}')
 
-            #plt.scatter(cog_test[:,-1],y_test)
-            #plt.show()
-            print(f'corr in after resid edu {corr_edu_resid}')
+            #compute r^2s (coefficient of determination) 
+            r2_iq_fMRI_preds[p,cog] = model.score(x_test,y_test) ##first x,then real values
+            r2_iq_edu_preds[p,cog] = model2.score(edu_test,y_test) ##first x,then real values - using only the one feature (educaiton)
+            r2_iq_avg_preds[p,cog] = r2_score(y_test, preds3[p,cog,:]) ##first y_true,then prediciton - average prediciton
+            r2_iq_resid_preds[p,cog] = r2_score(y_test, preds_resid[p,cog,:] ) ##first y_true, then prediciton - residuals (information left after regressing out)
+
+            r2_preds_edu[p,cog] = model3.score(edu_test,preds[p,cog,:]) ##first x,then real values - here we see how much the education explains the predictions we have usnig fMRI - to see the quality of the fit
+            r2_preds_avg_edu[p,cog] = model4.score(edu_test,preds3[p,cog,:]) 
+
+            #print the values
+            print (f'opt alpha {opt_alpha[p,cog]}')
+            print(f'r2 pred 1 fmri: {r2_iq_fMRI_preds[p,cog]}')
+            print(f'r2 pred 2 edu only: {r2_iq_edu_preds[p,cog] }')
+            print(f'r2 pred 3 average: {r2_iq_avg_preds[p,cog] }')
+            print(f'r2 pred 3 residuals: {r2_iq_resid_preds[p,cog] }')
+            print(f'r2 edu and pred fmri {r2_preds_edu[p,cog] }')
+
+            print(f'corr pred 1 fmri: {corr_iq_fMRI_preds[p,cog]}')
+            print(f'corr pred 2 edu only: {corr_iq_edu_preds[p,cog] }')
+            print(f'corr pred 3 average: {corr_iq_avg_preds[p,cog] }')
+            print(f'corr pred 3 residuals: {corr_iq_resid_preds[p,cog] }')
+            print(f'corr edu and pred fmri {corr_preds_edu[p,cog] }')
     
             #extract feature importance
             featimp[p,:,cog] = model.coef_
             #print(r2)
-            r2_edu[p,cog] = r2_score(cog_test[:,-1], preds[p,cog,:])
          
-    return r2,r2_2,r2_edu, preds, var, corr_iq,featimp, cogtest,opt_alpha, y_test.shape[0],corr_edu,corr_edu_AA
+    return r2_iq_fMRI_preds, r2_iq_edu_preds, r2_iq_avg_preds, r2_iq_resid_preds, r2_preds_edu, corr_iq_fMRI_preds, corr_iq_edu_preds, corr_iq_avg_preds, corr_iq_resid_preds,corr_preds_edu, y_test.shape[0], cogtest, featimp,preds,preds2,preds3,var,opt_alpha
 
 
 
