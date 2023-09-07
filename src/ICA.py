@@ -15,16 +15,13 @@ from nilearn.decomposition import CanICA
 
 
 cluster = True
-if cluster:
-    path = '/home/sheczko/ptmp/data/' #Cluster
-else:
-    path = 'data/' ##local
+
+path = '..data/' ##local
 
 ##add the data
-if cluster:
-    imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*.nii') ##load up a subset of the subejct images
-else:
-    imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*000*.nii') ##load up all the subejct images
+
+imgs_paths = glob.glob(path + 'func_images/AOMIC/prep_nifti/*.nii') ##load up all subejct images
+
 
 comp_list = np.array([100,200,400]) #define the amaount components used in this 
 
